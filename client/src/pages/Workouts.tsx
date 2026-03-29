@@ -20,10 +20,10 @@ import { cn } from '@/lib/utils';
 const disciplines = ['All Disciplines', 'Strength', 'Cardio', 'Mobility', 'Hybrid', 'Recovery'];
 
 const allWorkouts = [
-  { id: 'neural-hypertrophy', tag: 'STRENGTH', title: 'Neural Hypertrophy 1.0', duration: '65 MINS', difficulty: 'ELITE' as const, equipment: 'FULL GYM', image: 'https://picsum.photos/seed/strength/600/400?grayscale' },
-  { id: 'vo2-max', tag: 'CARDIO', title: 'VO2 Max Threshold', duration: '45 MINS', difficulty: 'ADVANCED' as const, equipment: 'TREADMILL', image: 'https://picsum.photos/seed/cardio/600/400?grayscale' },
-  { id: 'fascial-release', tag: 'MOBILITY', title: 'Fascial Chain Release', duration: '30 MINS', difficulty: 'BEGINNER' as const, equipment: 'MAT', image: 'https://picsum.photos/seed/mobility/600/400?grayscale' },
-  { id: 'metabolic-engine', tag: 'HYBRID', title: 'Metabolic Engine Builder', duration: '50 MINS', difficulty: 'EXPERT' as const, equipment: 'KETTLEBELLS', image: 'https://picsum.photos/seed/hybrid/600/400?grayscale' },
+  { id: 'neural-hypertrophy', tag: 'STRENGTH', title: 'Neural Hypertrophy 1.0', duration: '65 MINS', difficulty: 'ELITE' as const, equipment: 'FULL GYM', image: '/assets/images/neural-hypertrophy.png' },
+  { id: 'vo2-max', tag: 'CARDIO', title: 'VO2 Max Threshold', duration: '45 MINS', difficulty: 'ADVANCED' as const, equipment: 'TREADMILL', image: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?q=80&w=600&h=400&fit=crop' },
+  { id: 'fascial-release', tag: 'MOBILITY', title: 'Fascial Chain Release', duration: '30 MINS', difficulty: 'BEGINNER' as const, equipment: 'MAT', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&h=400&fit=crop' },
+  { id: 'metabolic-engine', tag: 'HYBRID', title: 'Metabolic Engine Builder', duration: '50 MINS', difficulty: 'EXPERT' as const, equipment: 'KETTLEBELLS', image: 'https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?q=80&w=600&h=400&fit=crop' },
 ];
 
 type SortOrder = 'latest' | 'oldest';
@@ -70,7 +70,7 @@ export default function Workouts() {
                 </p>
               </motion.div>
               
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <button className="px-8 py-4 bg-primary text-on-primary font-black text-[10px] tracking-[0.3em] uppercase transition-all hover:brightness-110 active:scale-95">
                   Browse All
                 </button>
@@ -120,7 +120,7 @@ export default function Workouts() {
             <div className="group flex flex-col md:flex-row md:col-span-2 bg-surface-container border border-primary/20 transition-all duration-500 overflow-hidden relative">
               <div className="md:w-1/2 h-80 md:h-auto overflow-hidden">
                 <img 
-                  src="https://picsum.photos/seed/apex/800/600?grayscale" 
+                  src="https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=800&h=600&fit=crop" 
                   alt="Apex Protocol" 
                   className="w-full h-full object-cover grayscale brightness-50 contrast-125 group-hover:scale-105 transition-transform duration-1000"
                   referrerPolicy="no-referrer"
@@ -132,7 +132,7 @@ export default function Workouts() {
                 <p className="text-on-surface-variant text-sm mb-10 leading-relaxed font-light">
                   The complete transformation framework. Integrating periodized strength, zone 2 conditioning, and precision recovery protocols for professional-level results.
                 </p>
-                <div className="flex gap-12 mb-12">
+                <div className="flex flex-wrap gap-6 sm:gap-12 mb-12">
                   <div className="flex flex-col">
                     <span className="text-[9px] uppercase tracking-[0.3em] font-black text-on-surface-variant mb-2">Phase</span>
                     <span className="text-sm font-black text-on-surface uppercase italic">01 Baseline</span>
@@ -164,7 +164,7 @@ export default function Workouts() {
       {/* FAB */}
       <button 
         onClick={() => setFabModalOpen(true)}
-        className="fixed bottom-12 right-12 w-16 h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110"
+        className="fixed bottom-6 right-6 sm:bottom-12 sm:right-12 w-14 h-14 sm:w-16 sm:h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110"
       >
         <Plus className="w-8 h-8 font-black" />
       </button>

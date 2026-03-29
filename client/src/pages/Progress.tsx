@@ -29,7 +29,7 @@ export default function Progress() {
         <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
           
           {/* Header */}
-          <section className="flex flex-col md:flex-row justify-between items-end gap-8">
+          <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ export default function Progress() {
               </p>
             </motion.div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <button className="px-8 py-4 bg-surface border border-outline text-on-surface font-black text-[10px] tracking-[0.3em] uppercase hover:bg-surface-bright transition-all">
                 Export Data
               </button>
@@ -97,9 +97,9 @@ export default function Progress() {
                   {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-on-surface"></div>)}
                 </div>
               </div>
-              <div className="flex justify-between mt-6 px-2">
+              <div className="flex justify-between mt-6 px-2 overflow-x-auto no-scrollbar gap-4">
                 {['Sep 23', 'Sep 30', 'Oct 07', 'Oct 14', 'Oct 21', 'Oct 28'].map(date => (
-                  <span key={date} className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">{date}</span>
+                  <span key={date} className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant whitespace-nowrap">{date}</span>
                 ))}
               </div>
             </div>

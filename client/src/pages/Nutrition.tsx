@@ -46,7 +46,7 @@ export default function Nutrition() {
                   <h2 className="font-headline text-5xl md:text-7xl font-black text-on-surface tracking-tighter italic">1,240</h2>
                   <span className="text-xl font-headline font-bold text-on-surface-variant uppercase italic">kcal</span>
                 </div>
-                <div className="mt-10 flex gap-12">
+                <div className="mt-10 flex flex-wrap gap-8 sm:gap-12">
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.3em] font-black text-on-surface-variant mb-1">Consumed</p>
                     <p className="text-xl font-headline font-bold text-on-surface">1,160 <span className="text-xs font-normal italic">kcal</span></p>
@@ -130,7 +130,7 @@ export default function Nutrition() {
                   Your current protein intake is 32% below target for optimal recovery after yesterday's high-volume session. We recommend a 40g casein shake before sleep to prevent muscle catabolism.
                 </p>
               </div>
-              <button className="ml-auto px-8 py-4 border border-primary text-primary font-black text-[10px] uppercase tracking-[0.3em] hover:bg-primary hover:text-on-primary transition-all whitespace-nowrap">
+              <button className="mt-6 md:mt-0 md:ml-auto px-8 py-4 border border-primary text-primary font-black text-[10px] uppercase tracking-[0.3em] hover:bg-primary hover:text-on-primary transition-all whitespace-nowrap flex-shrink-0">
                 Adjust Plan
               </button>
             </div>
@@ -143,7 +143,7 @@ export default function Nutrition() {
       {/* FAB */}
       <button 
         onClick={() => setFabModalOpen(true)}
-        className="fixed bottom-12 right-12 w-16 h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110"
+        className="fixed bottom-6 right-6 sm:bottom-12 sm:right-12 w-14 h-14 sm:w-16 sm:h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110"
       >
         <Scan className="w-8 h-8" />
       </button>
@@ -160,7 +160,7 @@ export default function Nutrition() {
               className="w-full bg-surface-low border border-outline px-6 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20"
             />
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label htmlFor="meal-calories" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Calories</label>
               <input id="meal-calories" type="number" placeholder="520" className="w-full bg-surface-low border border-outline px-4 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20" />

@@ -378,7 +378,7 @@ export default function Landing() {
                 <input
                   type="email"
                   placeholder="ENTER EMAIL"
-                  className="w-full bg-surface-container border-outline border-y border-l px-8 py-5 text-xs tracking-[0.3em] font-bold focus:ring-1 focus:ring-primary focus:outline-none text-on-surface placeholder:text-on-surface-variant/30"
+                  className="w-full bg-surface-container border border-outline sm:border-y sm:border-l sm:border-r-0 px-8 py-5 text-xs tracking-[0.3em] font-bold focus:ring-1 focus:ring-primary focus:outline-none text-on-surface placeholder:text-on-surface-variant/30"
                 />
                 <button className="bg-primary text-on-primary px-12 py-5 font-black tracking-[0.3em] uppercase text-xs hover:brightness-110 transition-all whitespace-nowrap active:scale-95">
                   JOIN NOW
@@ -396,7 +396,7 @@ export default function Landing() {
 
 function FeatureCard({ index, category, title, description, icon: Icon }: any) {
   return (
-    <div className="bg-surface p-12 flex flex-col justify-between aspect-square group hover:bg-surface-bright transition-all duration-500 cursor-default">
+    <div className="bg-surface p-8 sm:p-12 flex flex-col justify-between min-h-[280px] sm:aspect-square group hover:bg-surface-bright transition-all duration-500 cursor-default">
       <div>
         <div className="w-12 h-12 rounded-sm bg-primary/5 flex items-center justify-center mb-10 group-hover:bg-primary/10 transition-colors">
           <Icon className="text-primary w-6 h-6" />

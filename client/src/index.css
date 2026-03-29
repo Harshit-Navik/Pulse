@@ -17,13 +17,36 @@
   --color-outline-variant: rgba(255, 255, 255, 0.15);
 
   --font-headline: "Manrope", sans-serif;
-  --font-body: "Inter", sans-serif;
+  --font-body: "Manrope", sans-serif;
 }
 
 @layer base {
   body {
     @apply bg-background text-on-background font-body antialiased;
   }
+
+  /* Ensure Inter propagates to all form controls and elements that browsers reset */
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+
+  /* Prevent text overflow on small screens */
+  * {
+    min-width: 0;
+  }
+}
+
+/* Hide scrollbar utility for horizontal filter strips */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .kinetic-grain {

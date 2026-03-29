@@ -38,7 +38,7 @@ export default function Products() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background selection:bg-primary selection:text-on-primary font-sans flex flex-col">
+    <div className="min-h-screen bg-background selection:bg-primary selection:text-on-primary flex flex-col">
       <LandingNavbar />
       
       <main className="flex-grow pt-32 md:pt-48 pb-32">

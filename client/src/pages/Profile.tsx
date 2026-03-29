@@ -41,7 +41,7 @@ export default function Profile() {
           <section className="bg-surface-container p-8 md:p-12 border border-outline relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
               <div className="relative group">
-                <div className="w-40 h-40 rounded-sm overflow-hidden border-2 border-primary/20 p-1">
+                <div className="w-28 h-28 sm:w-40 sm:h-40 rounded-sm overflow-hidden border-2 border-primary/20 p-1">
                   <img 
                     src="https://picsum.photos/seed/athlete/400/400" 
                     alt="Profile" 
@@ -62,14 +62,14 @@ export default function Profile() {
                 <p className="text-on-surface-variant max-w-md font-light leading-relaxed mb-8">
                   High-performance athlete focused on metabolic efficiency and structural integration. Member since 2022.
                 </p>
-                <div className="flex flex-wrap justify-center md:justify-start gap-8">
+                <div className="flex flex-wrap justify-center md:justify-start gap-6 sm:gap-8">
                   <ProfileStat label="Consistency" value="94%" />
                   <ProfileStat label="Workouts" value="142" />
                   <ProfileStat label="Level" value="42" />
                 </div>
               </div>
               
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button className="px-8 py-4 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all">
                   Edit Profile
                 </button>

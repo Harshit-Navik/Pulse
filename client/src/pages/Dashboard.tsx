@@ -31,7 +31,7 @@ export default function Dashboard() {
         <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
           
           {/* Hero Header */}
-          <section className="flex flex-col md:flex-row justify-between items-end gap-8">
+          <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -46,7 +46,7 @@ export default function Dashboard() {
               </p>
             </motion.div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <button className="bg-primary text-on-primary px-8 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">
                 Start Workout
               </button>
@@ -232,15 +232,15 @@ interface RegimenItemProps {
 
 function RegimenItem({ session, title, duration, volume, impact, image }: RegimenItemProps) {
   return (
-    <div className="bg-surface-container p-6 flex items-center justify-between group cursor-pointer border-l-2 border-transparent hover:border-primary transition-all duration-300">
-      <div className="flex items-center gap-6">
-        <div className="w-16 h-16 bg-surface-low rounded-sm overflow-hidden border border-outline">
+    <div className="bg-surface-container p-6 flex items-center justify-between group cursor-pointer border-l-2 border-transparent hover:border-primary transition-all duration-300 overflow-hidden">
+      <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-surface-low rounded-sm overflow-hidden border border-outline flex-shrink-0">
           <img src={image} alt={title} className="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-100 transition-all duration-500" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] text-primary font-black tracking-[0.3em] uppercase mb-1">{session}</p>
-          <h6 className="font-headline text-lg font-extrabold tracking-tight uppercase italic">{title}</h6>
-          <div className="flex gap-4 mt-2">
+          <h6 className="font-headline text-base sm:text-lg font-extrabold tracking-tight uppercase italic truncate">{title}</h6>
+          <div className="flex flex-wrap gap-4 mt-2">
             <span className="text-[9px] text-on-surface-variant uppercase font-black flex items-center gap-1">
               <Clock className="w-3 h-3" /> {duration}
             </span>
@@ -257,7 +257,7 @@ function RegimenItem({ session, title, duration, volume, impact, image }: Regime
           </div>
         </div>
       </div>
-      <ChevronRight className="text-outline group-hover:text-primary transition-colors" />
+      <ChevronRight className="text-outline group-hover:text-primary transition-colors flex-shrink-0 ml-2" />
     </div>
   );
 }

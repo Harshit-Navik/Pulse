@@ -45,7 +45,7 @@ const workoutDatabase: Record<string, WorkoutData> = {
     duration: '65 MINS',
     difficulty: 'ELITE',
     equipment: 'FULL GYM',
-    image: 'https://picsum.photos/seed/strength/1200/600?grayscale',
+    image: '/assets/images/neural-hypertrophy.png',
     description: 'A high-intensity neural drive program designed to maximize motor unit recruitment and mechanical tension for advanced hypertrophy.',
     exercises: [
       { name: 'Barbell Back Squat', sets: 5, reps: '5', rest: '3 min', completed: false },
@@ -63,7 +63,7 @@ const workoutDatabase: Record<string, WorkoutData> = {
     duration: '45 MINS',
     difficulty: 'ADVANCED',
     equipment: 'TREADMILL',
-    image: 'https://picsum.photos/seed/cardio/1200/600?grayscale',
+    image: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?q=80&w=1200&h=600&fit=crop',
     description: 'Interval-based conditioning protocol to push your aerobic ceiling and improve cardiovascular output at lactate threshold.',
     exercises: [
       { name: 'Dynamic Warm-Up', sets: 1, reps: '5 min', rest: '-', completed: false },
@@ -80,7 +80,7 @@ const workoutDatabase: Record<string, WorkoutData> = {
     duration: '30 MINS',
     difficulty: 'BEGINNER',
     equipment: 'MAT',
-    image: 'https://picsum.photos/seed/mobility/1200/600?grayscale',
+    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200&h=600&fit=crop',
     description: 'A restorative session targeting the myofascial chains to improve range of motion, reduce adhesions, and accelerate recovery.',
     exercises: [
       { name: 'Foam Roll — Thoracic Spine', sets: 1, reps: '3 min', rest: '-', completed: false },
@@ -97,7 +97,7 @@ const workoutDatabase: Record<string, WorkoutData> = {
     duration: '50 MINS',
     difficulty: 'EXPERT',
     equipment: 'KETTLEBELLS',
-    image: 'https://picsum.photos/seed/hybrid/1200/600?grayscale',
+    image: 'https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?q=80&w=1200&h=600&fit=crop',
     description: 'A metabolic conditioning circuit combining strength and cardio elements for maximum caloric output and functional endurance.',
     exercises: [
       { name: 'Kettlebell Swing', sets: 5, reps: '15', rest: '45 sec', completed: false },
@@ -250,7 +250,7 @@ export default function WorkoutDetail() {
                   transition={{ delay: i * 0.05 }}
                   onClick={() => toggleExercise(i)}
                   className={cn(
-                    "bg-surface-container p-6 border border-outline flex items-center gap-6 cursor-pointer transition-all duration-300 group",
+                    "bg-surface-container p-4 sm:p-6 border border-outline flex items-center gap-4 sm:gap-6 cursor-pointer transition-all duration-300 group",
                     exercise.completed ? "border-primary/30 opacity-60" : "hover:border-primary/20"
                   )}
                 >
@@ -269,7 +269,7 @@ export default function WorkoutDetail() {
                       {exercise.name}
                     </p>
                   </div>
-                  <div className="flex gap-6 text-right">
+                  <div className="flex gap-4 sm:gap-6 text-right flex-shrink-0">
                     <div>
                       <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Sets</p>
                       <p className="text-sm font-bold text-on-surface">{exercise.sets}</p>

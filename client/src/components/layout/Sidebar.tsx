@@ -7,7 +7,9 @@ import {
   TrendingUp, 
   User, 
   Award,
-  X
+  X,
+  Calculator,
+  Bot
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +18,8 @@ const navItems = [
   { name: 'Workouts', icon: Dumbbell, path: '/workouts' },
   { name: 'Nutrition', icon: Utensils, path: '/nutrition' },
   { name: 'Progress', icon: TrendingUp, path: '/progress' },
+  { name: 'BMI Calc', icon: Calculator, path: '/bmi' },
+  { name: 'AI Coach', icon: Bot, path: '/chatbot' },
   { name: 'Profile', icon: User, path: '/profile' },
 ];
 

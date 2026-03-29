@@ -29,7 +29,7 @@ export default function Login() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-9xl font-black italic text-primary uppercase tracking-tighter leading-none mb-4">PULSE</h1>
+            <h1 className="text-7xl lg:text-9xl font-black italic text-primary uppercase tracking-tighter leading-none mb-4">PULSE</h1>
             <p className="text-xl tracking-[0.6em] uppercase text-on-surface-variant font-black">Performance Ritual</p>
           </motion.div>
           
