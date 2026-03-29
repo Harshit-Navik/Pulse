@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   TrendingUp, 
@@ -13,16 +13,20 @@ import {
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { QuickStat } from '@/components/ui/QuickStat';
+import { SessionCard } from '@/components/ui/SessionCard';
 import { cn } from '@/lib/utils';
 
 export default function Progress() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <TopBar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       
-      <main className="ml-64 pt-20">
-        <div className="p-12 max-w-7xl mx-auto space-y-12">
+      <main className="lg:ml-64 pt-20">
+        <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
           
           {/* Header */}
           <section className="flex flex-col md:flex-row justify-between items-end gap-8">
@@ -30,7 +34,7 @@ export default function Progress() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h2 className="font-headline text-6xl font-black italic tracking-tighter text-on-surface leading-none uppercase">Performance Metrics</h2>
+              <h2 className="font-headline text-4xl md:text-6xl font-black italic tracking-tighter text-on-surface leading-none uppercase">Performance Metrics</h2>
               <p className="mt-6 text-on-surface-variant max-w-md font-light leading-relaxed">
                 Your biological data mapped over time. Analyzing trends in strength, endurance, and systemic recovery.
               </p>
@@ -152,42 +156,6 @@ export default function Progress() {
 
         <Footer />
       </main>
-    </div>
-  );
-}
-
-function QuickStat({ label, value, icon: Icon, trend }: any) {
-  return (
-    <div className="bg-surface-container p-8 border border-outline group hover:border-primary/40 transition-all">
-      <div className="flex justify-between items-start mb-6">
-        <div className="p-3 bg-surface-low border border-outline group-hover:bg-primary group-hover:text-white transition-all">
-          <Icon className="w-5 h-5" />
-        </div>
-        <span className={cn(
-          "text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm",
-          trend.startsWith('+') ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
-        )}>
-          {trend}
-        </span>
-      </div>
-      <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em] mb-1">{label}</p>
-      <p className="text-4xl font-headline font-black text-on-surface italic">{value}</p>
-    </div>
-  );
-}
-
-function SessionCard({ title, date, duration, volume }: any) {
-  return (
-    <div className="bg-surface-container p-6 border border-outline hover:bg-surface-bright transition-all cursor-pointer group">
-      <p className="text-[9px] text-primary font-black uppercase tracking-[0.3em] mb-2">{date}</p>
-      <h5 className="font-headline text-lg font-black uppercase italic tracking-tight mb-6 leading-tight group-hover:text-primary transition-colors">{title}</h5>
-      <div className="flex justify-between items-center">
-        <div className="flex gap-4">
-          <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">{duration}</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">{volume}</span>
-        </div>
-        <ChevronRight className="w-4 h-4 text-outline group-hover:text-primary transition-all" />
-      </div>
     </div>
   );
 }

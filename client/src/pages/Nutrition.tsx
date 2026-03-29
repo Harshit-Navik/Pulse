@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   Utensils, 
@@ -16,16 +16,22 @@ import {
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { MacroBar } from '@/components/ui/MacroBar';
+import { MealCard } from '@/components/ui/MealCard';
+import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/utils';
 
 export default function Nutrition() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [fabModalOpen, setFabModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <TopBar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       
-      <main className="ml-64 pt-20">
-        <div className="p-12 max-w-7xl mx-auto space-y-12">
+      <main className="lg:ml-64 pt-20">
+        <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
           
           {/* Summary Header */}
           <section className="grid grid-cols-12 gap-8">
@@ -37,7 +43,7 @@ export default function Nutrition() {
               <div className="relative z-10">
                 <span className="text-[10px] uppercase tracking-[0.4em] font-black text-primary mb-4 block">Remaining Balance</span>
                 <div className="flex items-baseline gap-4">
-                  <h2 className="font-headline text-7xl font-black text-on-surface tracking-tighter italic">1,240</h2>
+                  <h2 className="font-headline text-5xl md:text-7xl font-black text-on-surface tracking-tighter italic">1,240</h2>
                   <span className="text-xl font-headline font-bold text-on-surface-variant uppercase italic">kcal</span>
                 </div>
                 <div className="mt-10 flex gap-12">
@@ -135,67 +141,49 @@ export default function Nutrition() {
       </main>
 
       {/* FAB */}
-      <button className="fixed bottom-12 right-12 w-16 h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110">
+      <button 
+        onClick={() => setFabModalOpen(true)}
+        className="fixed bottom-12 right-12 w-16 h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110"
+      >
         <Scan className="w-8 h-8" />
       </button>
-    </div>
-  );
-}
 
-function MacroBar({ label, current, target, color }: any) {
-  const percentage = Math.min((current / target) * 100, 100);
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-        <span className="text-on-surface">{label}</span>
-        <span className="text-on-surface-variant">{current}g <span className="text-on-surface-variant/40">/ {target}g</span></span>
-      </div>
-      <div className="w-full h-1.5 bg-surface-highest rounded-full overflow-hidden">
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className={cn("h-full", color)}
-        />
-      </div>
-    </div>
-  );
-}
-
-function MealCard({ time, type, items, totalCals, icon: Icon, active }: any) {
-  return (
-    <div className={cn(
-      "bg-surface-container p-8 border-l-2 transition-all duration-300 group",
-      active ? "border-primary" : "border-transparent hover:border-outline"
-    )}>
-      <div className="flex flex-col md:flex-row justify-between gap-8">
-        <div className="flex gap-8">
-          <div className="w-14 h-14 bg-surface-low rounded-sm flex items-center justify-center border border-outline group-hover:bg-primary group-hover:text-white transition-all">
-            <Icon className="w-6 h-6" />
+      {/* Log Meal Modal */}
+      <Modal isOpen={fabModalOpen} onClose={() => setFabModalOpen(false)} title="Log Meal">
+        <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setFabModalOpen(false); }}>
+          <div className="space-y-2">
+            <label htmlFor="meal-name" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Meal Name</label>
+            <input 
+              id="meal-name"
+              type="text" 
+              placeholder="e.g. Grilled Salmon"
+              className="w-full bg-surface-low border border-outline px-6 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20"
+            />
           </div>
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-[10px] text-primary font-black uppercase tracking-[0.3em]">{time}</span>
-              <span className="w-1 h-1 bg-outline rounded-full"></span>
-              <span className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">{type}</span>
-            </div>
-            <h6 className="font-headline text-xl font-black uppercase italic tracking-tight mb-4">{type} Optimization</h6>
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              {items.map((item: any, i: number) => (
-                <div key={i} className="flex items-center gap-4 text-sm text-on-surface-variant font-light">
-                  <span className="w-1 h-1 bg-primary rounded-full"></span>
-                  <span>{item.name}</span>
-                  <span className="text-[10px] font-bold text-on-surface-variant/40">{item.cals} kcal</span>
-                </div>
-              ))}
+              <label htmlFor="meal-calories" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Calories</label>
+              <input id="meal-calories" type="number" placeholder="520" className="w-full bg-surface-low border border-outline px-4 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="meal-protein" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Protein</label>
+              <input id="meal-protein" type="number" placeholder="42g" className="w-full bg-surface-low border border-outline px-4 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="meal-type" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Type</label>
+              <select id="meal-type" className="w-full bg-surface-low border border-outline px-4 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all">
+                <option>Breakfast</option>
+                <option>Lunch</option>
+                <option>Dinner</option>
+                <option>Snack</option>
+              </select>
             </div>
           </div>
-        </div>
-        <div className="text-right flex flex-col justify-center">
-          <p className="text-3xl font-headline font-black text-on-surface italic">{totalCals}</p>
-          <p className="text-[9px] uppercase tracking-[0.3em] font-black text-on-surface-variant">Total kcal</p>
-        </div>
-      </div>
+          <button type="submit" className="w-full py-5 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98]">
+            Log Entry
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 }

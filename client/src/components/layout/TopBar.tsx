@@ -1,21 +1,38 @@
 import React from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Menu } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
-export function TopBar() {
+interface TopBarProps {
+  onMenuToggle?: () => void;
+}
+
+export function TopBar({ onMenuToggle }: TopBarProps) {
   const location = useLocation();
+  const { user } = useAuth();
   const pathName = location.pathname.split('/').pop() || 'Dashboard';
   const formattedPath = pathName.charAt(0).toUpperCase() + pathName.slice(1);
 
+  // Dynamic date
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
   return (
-    <header className="fixed top-0 right-0 w-[calc(100%-16rem)] h-20 bg-surface-low/60 backdrop-blur-xl flex items-center justify-between px-10 z-40 border-b border-outline/50">
+    <header className="fixed top-0 right-0 w-full lg:w-[calc(100%-16rem)] h-20 bg-surface-low/60 backdrop-blur-xl flex items-center justify-between px-6 md:px-10 z-40 border-b border-outline/50">
       <div className="flex items-center gap-4">
+        {/* Hamburger for mobile */}
+        <button 
+          onClick={onMenuToggle}
+          className="lg:hidden p-2 text-on-surface-variant hover:text-on-surface transition-colors mr-2"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface font-headline">{formattedPath}</h2>
-        <span className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest">Monday, Oct 23</span>
+        <span className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest hidden sm:inline">{formattedDate}</span>
       </div>
 
-      <div className="flex items-center gap-8">
-        <div className="relative group">
+      <div className="flex items-center gap-4 md:gap-8">
+        <div className="relative group hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant group-focus-within:text-primary transition-colors" />
           <input 
             type="text" 
@@ -29,10 +46,10 @@ export function TopBar() {
           <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full border border-surface-low"></span>
         </button>
 
-        <div className="flex items-center gap-4 pl-6 border-l border-outline">
+        <div className="flex items-center gap-4 pl-4 md:pl-6 border-l border-outline">
           <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-on-surface uppercase tracking-tight">Alexander Thorne</p>
-            <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest">Premium Member</p>
+            <p className="text-xs font-bold text-on-surface uppercase tracking-tight">{user?.name || 'Alexander Thorne'}</p>
+            <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest">{user?.tier || 'Premium'} Member</p>
           </div>
           <div className="w-10 h-10 rounded-sm overflow-hidden border border-outline ring-1 ring-primary/10">
             <img 

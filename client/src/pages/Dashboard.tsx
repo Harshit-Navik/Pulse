@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   TrendingUp, 
@@ -14,15 +14,21 @@ import {
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { MetricCard } from '@/components/ui/MetricCard';
+import { Modal } from '@/components/ui/Modal';
+import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [fabModalOpen, setFabModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <TopBar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       
-      <main className="ml-64 pt-20">
-        <div className="p-12 max-w-7xl mx-auto space-y-12">
+      <main className="lg:ml-64 pt-20">
+        <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
           
           {/* Hero Header */}
           <section className="flex flex-col md:flex-row justify-between items-end gap-8">
@@ -31,7 +37,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, x: 0 }}
               className="max-w-xl"
             >
-              <h3 className="font-headline text-6xl font-extrabold tracking-tighter text-on-surface leading-[0.9] uppercase italic">
+              <h3 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tighter text-on-surface leading-[0.9] uppercase italic">
                 Precision <br/>
                 <span className="text-primary">Performance.</span>
               </h3>
@@ -187,32 +193,44 @@ export default function Dashboard() {
       </main>
 
       {/* FAB */}
-      <button className="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary flex items-center justify-center rounded-sm shadow-2xl hover:brightness-125 hover:scale-105 transition-all active:scale-95 group z-50">
+      <button 
+        onClick={() => setFabModalOpen(true)}
+        className="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary flex items-center justify-center rounded-sm shadow-2xl hover:brightness-125 hover:scale-105 transition-all active:scale-95 group z-50"
+      >
         <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-500" />
       </button>
+
+      {/* Quick Action Modal */}
+      <Modal isOpen={fabModalOpen} onClose={() => setFabModalOpen(false)} title="Quick Action">
+        <div className="space-y-4">
+          <button className="w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group">
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Workout</p>
+            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">Start a New Session</p>
+          </button>
+          <button className="w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group">
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Nutrition</p>
+            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">Log a Meal</p>
+          </button>
+          <button className="w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group">
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Progress</p>
+            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">Record Measurement</p>
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
 
-function MetricCard({ label, value, unit, icon: Icon, color }: any) {
-  return (
-    <div className="col-span-12 lg:col-span-4 bg-surface-container p-6 group hover:border-l-4 hover:border-primary transition-all duration-300">
-      <div className="flex items-center gap-4">
-        <div className={cn("p-3 bg-surface-highest rounded-sm group-hover:bg-primary group-hover:text-white transition-all", color)}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <span className="text-[10px] uppercase font-black text-on-surface-variant tracking-[0.3em]">{label}</span>
-          <p className="text-3xl font-headline font-extrabold text-on-surface leading-none mt-1">
-            {value} {unit && <span className="text-xs font-normal text-on-surface-variant">{unit}</span>}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+interface RegimenItemProps {
+  session: string;
+  title: string;
+  duration: string;
+  volume?: string;
+  impact?: string;
+  image: string;
 }
 
-function RegimenItem({ session, title, duration, volume, impact, image }: any) {
+function RegimenItem({ session, title, duration, volume, impact, image }: RegimenItemProps) {
   return (
     <div className="bg-surface-container p-6 flex items-center justify-between group cursor-pointer border-l-2 border-transparent hover:border-primary transition-all duration-300">
       <div className="flex items-center gap-6">
@@ -244,7 +262,14 @@ function RegimenItem({ session, title, duration, volume, impact, image }: any) {
   );
 }
 
-function MealStep({ number, label, description, active }: any) {
+interface MealStepProps {
+  number: string;
+  label: string;
+  description: string;
+  active?: boolean;
+}
+
+function MealStep({ number, label, description, active }: MealStepProps) {
   return (
     <div className="flex gap-4">
       <div className={cn("font-black text-2xl font-headline italic", active ? "text-primary" : "text-surface-highest")}>
@@ -256,8 +281,4 @@ function MealStep({ number, label, description, active }: any) {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

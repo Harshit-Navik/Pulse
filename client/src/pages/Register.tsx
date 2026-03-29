@@ -4,15 +4,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Github, Chrome } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
+    register(name, email, password);
     navigate('/dashboard');
   };
 
@@ -22,7 +23,7 @@ export default function Login() {
       <div className="hidden md:flex md:w-1/2 bg-surface-low relative items-center justify-center p-24 overflow-hidden">
         <div className="absolute inset-0 kinetic-grid opacity-30"></div>
         <div className="absolute inset-0 kinetic-grain"></div>
-        
+
         <div className="relative z-10 space-y-12">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -30,22 +31,21 @@ export default function Login() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-9xl font-black italic text-primary uppercase tracking-tighter leading-none mb-4">PULSE</h1>
-            <p className="text-xl tracking-[0.6em] uppercase text-on-surface-variant font-black">Performance Ritual</p>
+            <p className="text-xl tracking-[0.6em] uppercase text-on-surface-variant font-black">Begin Your Ritual</p>
           </motion.div>
-          
+
           <div className="space-y-6 max-w-md">
             <p className="text-on-surface text-lg font-light leading-relaxed">
-              "The difference between the elite and the average is the quality of their rituals."
+              "Every great transformation begins with a single decision to change."
             </p>
             <div className="w-12 h-1 bg-primary"></div>
           </div>
         </div>
 
-        {/* Background Image Overlay */}
         <div className="absolute inset-0 -z-10 opacity-10">
-          <img 
-            src="https://picsum.photos/seed/monolith/1200/1200?grayscale" 
-            alt="Monolith" 
+          <img
+            src="https://picsum.photos/seed/register/1200/1200?grayscale"
+            alt="Register"
             className="w-full h-full object-cover contrast-150 brightness-50"
             referrerPolicy="no-referrer"
           />
@@ -54,23 +54,36 @@ export default function Login() {
 
       {/* Right Side - Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-24 relative">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="w-full max-w-md space-y-12"
         >
           <div className="space-y-4">
-            <h2 className="font-headline text-4xl font-black uppercase italic tracking-tighter text-on-surface">Welcome Back</h2>
-            <p className="text-on-surface-variant text-sm font-light">Enter your credentials to access the Monolith.</p>
+            <h2 className="font-headline text-4xl font-black uppercase italic tracking-tighter text-on-surface">Create Account</h2>
+            <p className="text-on-surface-variant text-sm font-light">Join the Monolith. Begin your performance ritual.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleRegister} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="login-email" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Email Address</label>
-              <input 
-                id="login-email"
-                type="email" 
+              <label htmlFor="register-name" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Full Name</label>
+              <input
+                id="register-name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Alexander Thorne"
+                className="w-full bg-surface-container border border-outline px-6 py-5 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="register-email" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Email Address</label>
+              <input
+                id="register-email"
+                type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -78,15 +91,12 @@ export default function Login() {
                 className="w-full bg-surface-container border border-outline px-6 py-5 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20"
               />
             </div>
-            
+
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <label htmlFor="login-password" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Password</label>
-                <a href="#" className="text-[9px] font-black text-primary uppercase tracking-widest hover:text-on-surface transition-colors">Forgot?</a>
-              </div>
-              <input 
-                id="login-password"
-                type="password" 
+              <label htmlFor="register-password" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Password</label>
+              <input
+                id="register-password"
+                type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -95,11 +105,11 @@ export default function Login() {
               />
             </div>
 
-            <button 
+            <button
               type="submit"
               className="w-full py-5 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98] shadow-2xl shadow-primary/20"
             >
-              Continue
+              Create Account
             </button>
           </form>
 
@@ -120,7 +130,7 @@ export default function Login() {
           </div>
 
           <p className="text-center text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-            New to the ritual? <Link to="/register" className="text-primary hover:text-on-surface transition-colors">Create an Account</Link>
+            Already a member? <Link to="/login" className="text-primary hover:text-on-surface transition-colors">Sign In</Link>
           </p>
         </motion.div>
       </div>

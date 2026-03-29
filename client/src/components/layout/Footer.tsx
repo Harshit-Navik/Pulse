@@ -1,4 +1,5 @@
 import React from 'react';
+import { Instagram, Twitter, Youtube, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -13,7 +14,22 @@ export function Footer() {
           <a href="#" className="text-[10px] tracking-[0.3em] uppercase text-on-surface-variant hover:text-primary transition-colors font-bold">Careers</a>
         </div>
 
-        <div className="text-[10px] tracking-[0.2em] uppercase text-on-surface-variant/50 text-center font-medium">
+        <div className="flex items-center gap-8 mt-2">
+          <a href="#" aria-label="Instagram" className="text-on-surface-variant hover:text-primary transition-colors hover:-translate-y-1 transform duration-300">
+            <Instagram className="w-5 h-5" />
+          </a>
+          <a href="#" aria-label="Twitter" className="text-on-surface-variant hover:text-primary transition-colors hover:-translate-y-1 transform duration-300">
+            <Twitter className="w-5 h-5" />
+          </a>
+          <a href="#" aria-label="YouTube" className="text-on-surface-variant hover:text-primary transition-colors hover:-translate-y-1 transform duration-300">
+            <Youtube className="w-5 h-5" />
+          </a>
+          <a href="mailto:support@pulse.monolith" aria-label="Email" className="text-on-surface-variant hover:text-primary transition-colors hover:-translate-y-1 transform duration-300">
+            <Mail className="w-5 h-5" />
+          </a>
+        </div>
+
+        <div className="text-[10px] tracking-[0.2em] uppercase text-on-surface-variant/50 text-center font-medium mt-4">
           © 2024 PULSE PERFORMANCE. ALL RIGHTS RESERVED.
         </div>
       </div>

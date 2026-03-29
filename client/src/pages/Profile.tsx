@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   User, 
@@ -12,22 +12,33 @@ import {
   CheckCircle2,
   Trash2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
 export default function Profile() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
-      <TopBar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       
-      <main className="ml-64 pt-20">
-        <div className="p-12 max-w-7xl mx-auto space-y-12">
+      <main className="lg:ml-64 pt-20">
+        <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
           
           {/* Profile Header */}
-          <section className="bg-surface-container p-12 border border-outline relative overflow-hidden">
+          <section className="bg-surface-container p-8 md:p-12 border border-outline relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
               <div className="relative group">
                 <div className="w-40 h-40 rounded-sm overflow-hidden border-2 border-primary/20 p-1">
@@ -45,8 +56,8 @@ export default function Profile() {
               
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-                  <h2 className="font-headline text-5xl font-black italic uppercase tracking-tighter text-on-surface">Julian Pierce</h2>
-                  <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-[9px] font-black uppercase tracking-[0.3em] border border-primary/20">Elite Tier</span>
+                  <h2 className="font-headline text-3xl md:text-5xl font-black italic uppercase tracking-tighter text-on-surface">{user?.name || 'Julian Pierce'}</h2>
+                  <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-[9px] font-black uppercase tracking-[0.3em] border border-primary/20">{user?.tier || 'Elite'} Tier</span>
                 </div>
                 <p className="text-on-surface-variant max-w-md font-light leading-relaxed mb-8">
                   High-performance athlete focused on metabolic efficiency and structural integration. Member since 2022.
@@ -79,10 +90,10 @@ export default function Profile() {
                   <h3 className="font-headline text-2xl font-black uppercase italic tracking-tight">Account Security</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ProfileInput label="Full Name" value="Julian Pierce" />
-                  <ProfileInput label="Email Address" value="j.pierce@monolith.com" />
-                  <ProfileInput label="Password" value="••••••••••••" type="password" />
-                  <ProfileInput label="Phone Number" value="+1 (555) 0123-4567" />
+                  <ProfileInput id="profile-name" label="Full Name" value={user?.name || 'Julian Pierce'} />
+                  <ProfileInput id="profile-email" label="Email Address" value={user?.email || 'j.pierce@monolith.com'} />
+                  <ProfileInput id="profile-password" label="Password" value="••••••••••••" type="password" />
+                  <ProfileInput id="profile-phone" label="Phone Number" value="+1 (555) 0123-4567" />
                 </div>
               </section>
 
@@ -138,7 +149,10 @@ export default function Profile() {
                   <ToggleItem label="Public Profile" />
                 </div>
                 <div className="mt-12 pt-8 border-t border-outline space-y-4">
-                  <button className="w-full flex items-center justify-between text-on-surface-variant hover:text-primary transition-colors group">
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-between text-on-surface-variant hover:text-primary transition-colors group"
+                  >
                     <span className="text-[10px] font-black uppercase tracking-[0.3em]">Sign Out</span>
                     <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -158,7 +172,12 @@ export default function Profile() {
   );
 }
 
-function ProfileStat({ label, value }: any) {
+interface ProfileStatProps {
+  label: string;
+  value: string;
+}
+
+function ProfileStat({ label, value }: ProfileStatProps) {
   return (
     <div className="flex flex-col">
       <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-[0.3em] mb-1">{label}</span>
@@ -167,11 +186,19 @@ function ProfileStat({ label, value }: any) {
   );
 }
 
-function ProfileInput({ label, value, type = "text" }: any) {
+interface ProfileInputProps {
+  id: string;
+  label: string;
+  value: string;
+  type?: string;
+}
+
+function ProfileInput({ id, label, value, type = "text" }: ProfileInputProps) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">{label}</label>
+      <label htmlFor={id} className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">{label}</label>
       <input 
+        id={id}
         type={type} 
         defaultValue={value} 
         className="w-full bg-surface-low border border-outline px-6 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all"
@@ -180,7 +207,13 @@ function ProfileInput({ label, value, type = "text" }: any) {
   );
 }
 
-function GoalItem({ title, value, status }: any) {
+interface GoalItemProps {
+  title: string;
+  value: string;
+  status: string;
+}
+
+function GoalItem({ title, value, status }: GoalItemProps) {
   return (
     <div className="bg-surface-container p-6 flex items-center justify-between border border-outline hover:border-primary/20 transition-all cursor-pointer group">
       <div>
@@ -195,17 +228,27 @@ function GoalItem({ title, value, status }: any) {
   );
 }
 
-function ToggleItem({ label, active }: any) {
+interface ToggleItemProps {
+  label: string;
+  active?: boolean;
+}
+
+function ToggleItem({ label, active }: ToggleItemProps) {
+  const [isActive, setIsActive] = useState(active || false);
+  
   return (
     <div className="flex items-center justify-between">
       <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">{label}</span>
-      <button className={cn(
-        "w-10 h-5 rounded-full relative transition-all duration-300",
-        active ? "bg-primary" : "bg-surface-highest"
-      )}>
+      <button 
+        onClick={() => setIsActive(!isActive)}
+        className={cn(
+          "w-10 h-5 rounded-full relative transition-all duration-300",
+          isActive ? "bg-primary" : "bg-surface-highest"
+        )}
+      >
         <div className={cn(
           "absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-300",
-          active ? "right-1" : "left-1"
+          isActive ? "right-1" : "left-1"
         )}></div>
       </button>
     </div>
