@@ -9,11 +9,21 @@ export default function Login() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/dashboard');
+    setError(null);
+    setLoading(true);
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -22,7 +32,7 @@ export default function Login() {
       <div className="hidden md:flex md:w-1/2 bg-surface-low relative items-center justify-center p-24 overflow-hidden">
         <div className="absolute inset-0 kinetic-grid opacity-30"></div>
         <div className="absolute inset-0 kinetic-grain"></div>
-        
+
         <div className="relative z-10 space-y-12">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -32,7 +42,7 @@ export default function Login() {
             <h1 className="text-7xl lg:text-9xl font-black italic text-primary uppercase tracking-tighter leading-none mb-4">PULSE</h1>
             <p className="text-xl tracking-[0.6em] uppercase text-on-surface-variant font-black">Performance Ritual</p>
           </motion.div>
-          
+
           <div className="space-y-6 max-w-md">
             <p className="text-on-surface text-lg font-light leading-relaxed">
               "The difference between the elite and the average is the quality of their rituals."
@@ -43,9 +53,9 @@ export default function Login() {
 
         {/* Background Image Overlay */}
         <div className="absolute inset-0 -z-10 opacity-10">
-          <img 
-            src="https://picsum.photos/seed/monolith/1200/1200?grayscale" 
-            alt="Monolith" 
+          <img
+            src="https://picsum.photos/seed/monolith/1200/1200?grayscale"
+            alt="Monolith"
             className="w-full h-full object-cover contrast-150 brightness-50"
             referrerPolicy="no-referrer"
           />
@@ -54,7 +64,7 @@ export default function Login() {
 
       {/* Right Side - Form */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-24 relative">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
@@ -65,12 +75,22 @@ export default function Login() {
             <p className="text-on-surface-variant text-sm font-light">Enter your credentials to access the Monolith.</p>
           </div>
 
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-900/20 border border-red-500/50 text-red-500 text-xs font-black uppercase tracking-widest"
+            >
+              System Error: {error}
+            </motion.div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="login-email" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Email Address</label>
-              <input 
+              <input
                 id="login-email"
-                type="email" 
+                type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -78,15 +98,15 @@ export default function Login() {
                 className="w-full bg-surface-container border border-outline px-6 py-5 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/20"
               />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label htmlFor="login-password" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Password</label>
                 <a href="#" className="text-[9px] font-black text-primary uppercase tracking-widest hover:text-on-surface transition-colors">Forgot?</a>
               </div>
-              <input 
+              <input
                 id="login-password"
-                type="password" 
+                type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -95,15 +115,23 @@ export default function Login() {
               />
             </div>
 
-            <button 
+            <button
               type="submit"
-              className="w-full py-5 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98] shadow-2xl shadow-primary/20"
+              disabled={loading}
+              className="w-full py-5 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98] shadow-2xl shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
             >
-              Continue
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div>
+                  Authenticating...
+                </>
+              ) : (
+                'Continue'
+              )}
             </button>
           </form>
 
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-outline"></div>
             </div>
@@ -117,7 +145,7 @@ export default function Login() {
               <Chrome className="w-4 h-4 text-on-surface-variant group-hover:text-on-surface transition-colors" />
               <span className="text-[9px] font-black uppercase tracking-widest">Google</span>
             </button>
-          </div>
+          </div> */}
 
           <p className="text-center text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
             New to the ritual? <Link to="/register" className="text-primary hover:text-on-surface transition-colors">Create an Account</Link>

@@ -128,10 +128,9 @@ userSchema.index({ tier: 1 });
 userSchema.index({ createdAt: -1 });
 
 // ── Pre-save Middleware ────────────────────────────────────────────
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
 
 // ── Instance Methods ───────────────────────────────────────────────

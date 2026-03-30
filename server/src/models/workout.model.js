@@ -95,7 +95,7 @@ const workoutSchema = new mongoose.Schema(
     // Distinguishes platform defaults from user-created workouts
     isPublic: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {

@@ -173,7 +173,7 @@ export default function Chatbot() {
       // All data collected — generate plan
       setCurrentStep(nextStepIndex);
       addBotMessage(
-        "🔥 Awesome! I have everything I need. Let me generate your personalized plan..."
+        " Awesome! I have everything I need. Let me generate your personalized plan..."
       );
 
       // Call the server
@@ -217,7 +217,7 @@ export default function Chatbot() {
         {
           id: generateId(),
           role: 'bot',
-          text: "⚠️ I couldn't reach the server. Make sure the Pulse backend is running on port 5000. You can start it with `npm run dev` in the /server directory.",
+          text: " I couldn't reach the server. Make sure the Pulse backend is running on port 5000. You can start it with `npm run dev` in the /server directory.",
           timestamp: new Date(),
         },
       ]);
@@ -329,7 +329,7 @@ export default function Chatbot() {
                     AI Coach
                   </h3>
                   <p className="text-sm text-on-surface-variant font-light leading-relaxed max-w-md mb-10">
-                    Get a personalized diet and workout plan tailored to your body, goals, and lifestyle. 
+                    Get a personalized diet and workout plan tailored to your body, goals, and lifestyle.
                     I'll ask you a few quick questions—then generate your plan instantly.
                   </p>
 
@@ -376,11 +376,10 @@ export default function Chatbot() {
 
                         <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-1' : ''}`}>
                           <div
-                            className={`px-5 py-4 text-sm leading-relaxed ${
-                              msg.role === 'user'
+                            className={`px-5 py-4 text-sm leading-relaxed ${msg.role === 'user'
                                 ? 'bg-primary text-on-primary font-medium'
                                 : 'bg-surface-low border border-outline text-on-surface font-light'
-                            }`}
+                              }`}
                           >
                             {msg.text}
                           </div>

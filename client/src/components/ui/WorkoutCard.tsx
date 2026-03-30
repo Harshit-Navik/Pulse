@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface WorkoutCardProps {
@@ -10,9 +10,11 @@ export interface WorkoutCardProps {
   difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'ELITE' | 'EXPERT';
   equipment: string;
   image: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, image }: WorkoutCardProps) {
+export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, image, onEdit, onDelete }: WorkoutCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -27,6 +29,29 @@ export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, i
         <div className="absolute top-6 left-6">
           <span className="bg-primary px-3 py-1 text-[9px] font-black tracking-[0.2em] uppercase text-on-primary">{tag}</span>
         </div>
+        {/* Edit / Delete buttons — shown only when callbacks are provided */}
+        {(onEdit || onDelete) && (
+          <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {onEdit && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                className="w-9 h-9 bg-surface/90 backdrop-blur-sm border border-outline flex items-center justify-center hover:bg-primary hover:text-on-primary hover:border-primary transition-all"
+                title="Edit Workout"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className="w-9 h-9 bg-surface/90 backdrop-blur-sm border border-outline flex items-center justify-center hover:bg-red-600 hover:text-white hover:border-red-600 transition-all"
+                title="Delete Workout"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div className="p-10 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-8">

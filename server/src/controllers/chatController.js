@@ -1,11 +1,19 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-const getGenAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
+const getGroqAI = () => {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || apiKey === "your_groq_api_key_here") {
     return null;
   }
-  return new GoogleGenerativeAI(apiKey);
+  return new Groq({ apiKey });
+};
+
+const withTimeout = (promise, ms) => {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("AI_TIMEOUT")), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 };
 
 /**
@@ -21,38 +29,59 @@ export async function handleChatMessage(req, res) {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const genAI = getGenAI();
-    if (!genAI) {
+    const groq = getGroqAI();
+    if (!groq) {
       return res.status(503).json({
         error: "AI service not configured",
         fallback: true,
-        reply: "I'm currently running in offline mode. Please ask the admin to configure the GEMINI_API_KEY in the server .env file.",
+        reply: "I'm currently running in offline mode. Please ask the admin to configure the GROQ_API_KEY in the server .env file.",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const messages = history.map((msg) => ({
+      role: msg.role === "model" ? "assistant" : msg.role,
+      content: msg.text,
+    }));
+    messages.push({ role: "user", content: message });
 
-    const chat = model.startChat({
-      history: history.map((msg) => ({
-        role: msg.role,
-        parts: [{ text: msg.text }],
-      })),
-      generationConfig: {
-        maxOutputTokens: 1024,
+    const response = await withTimeout(
+      groq.chat.completions.create({
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        messages,
+        max_tokens: 1024,
         temperature: 0.7,
-      },
-    });
+      }),
+      15000
+    );
 
-    const result = await chat.sendMessage(message);
-    const response = result.response;
-    const reply = response.text();
+    const reply = response.choices[0].message.content;
 
     return res.json({ reply });
   } catch (error) {
     console.error("Chat error:", error.message);
-    return res.status(500).json({
-      error: "Failed to get AI response",
-      reply: "Sorry, I encountered an error. Please try again.",
+
+    let statusCode = 500;
+    let errorMessage = "Failed to get AI response";
+    let fallbackReply = "Sorry, I encountered an internal error. Please try again.";
+
+    if (error.message === "AI_TIMEOUT") {
+      statusCode = 504;
+      errorMessage = "AI generation timed out";
+      fallbackReply = "I'm currently experiencing heavy load and timed out. Please try your message again!";
+    } else if (error.status === 429) {
+      statusCode = 429;
+      errorMessage = "AI Quota Exceeded";
+      fallbackReply = "I'm currently out of capacity due to rate limits. Please try again in a few minutes.";
+    } else if (error.status === 403 || error.status === 401) {
+      statusCode = 403;
+      errorMessage = "API Configuration Error";
+      fallbackReply = "My communication lines are blocked (API key or region restriction).";
+    }
+
+    return res.status(statusCode).json({
+      error: errorMessage,
+      reply: fallbackReply,
+      fallback: true,
     });
   }
 }
@@ -71,16 +100,14 @@ export async function generatePlan(req, res) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
-    const genAI = getGenAI();
-    if (!genAI) {
+    const groq = getGroqAI();
+    if (!groq) {
       // Return a static fallback plan when API key is not configured
       return res.json({
         fallback: true,
         plan: generateFallbackPlan({ age, gender, height, weight, goal, activityLevel, dietaryPreference }),
       });
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `You are Pulse AI Coach, a professional fitness and nutrition expert.
 Based on the following user profile, generate a personalized daily diet plan and workout plan.
@@ -113,27 +140,55 @@ Respond in this exact JSON format (no markdown, just raw JSON):
   "tips": ["tip1", "tip2", "tip3"]
 }`;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    let text = response.text();
+    const response = await withTimeout(
+      groq.chat.completions.create({
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        messages: [{ role: "user", content: prompt }],
+      }),
+      15000
+    );
+    let text = response.choices[0].message.content;
 
-    // Strip markdown code fences if present
-    text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    text = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+
+    // Secondary fallback cleanup to catch rogue markdown formatting
+    if (text.startsWith("{") && !text.endsWith("}")) {
+      const lastBrace = text.lastIndexOf("}");
+      if (lastBrace > -1) text = text.substring(0, lastBrace + 1);
+    }
 
     try {
       const plan = JSON.parse(text);
       return res.json({ plan });
-    } catch {
-      // If JSON parsing fails, return the raw text
+    } catch (parseError) {
+      console.error("AI JSON Parse Error:", parseError.message);
+      // If JSON parsing fails, return the fallback plan
       return res.json({
+        fallback: true,
         plan: generateFallbackPlan({ age, gender, height, weight, goal, activityLevel, dietaryPreference }),
         rawResponse: text,
       });
     }
   } catch (error) {
     console.error("Plan generation error:", error.message);
-    return res.status(500).json({
-      error: "Failed to generate plan",
+
+    let statusCode = 500;
+    let errorMessage = "Failed to generate plan";
+
+    if (error.message === "AI_TIMEOUT") {
+      statusCode = 504;
+      errorMessage = "AI generation timed out";
+    } else if (error.status === 429) {
+      statusCode = 429;
+      errorMessage = "AI Quota Exceeded";
+    } else if (error.status === 403 || error.status === 401) {
+      statusCode = 403;
+      errorMessage = "API Configuration Error";
+    }
+
+    return res.status(statusCode).json({
+      error: errorMessage,
+      fallback: true,
       plan: generateFallbackPlan(req.body),
     });
   }

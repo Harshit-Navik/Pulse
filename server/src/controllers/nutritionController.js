@@ -6,7 +6,7 @@ import { MealLog } from "../models/mealLog.model.js";
 /**
  * POST /api/nutrition/meals
  * Body: { name, type, calories, protein, carbs, fats, items, time }
- * Maps to: Nutrition.tsx Log Meal modal → { meal-name, meal-calories, meal-protein, meal-type }
+ * Maps to: Nutrition.tsx Log Meal modal
  */
 export const logMeal = asyncHandler(async (req, res) => {
   const { name, type, calories, protein, carbs, fats, items, time } = req.body;
@@ -34,7 +34,7 @@ export const logMeal = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/nutrition/meals
- * Query: ?date=2024-10-01 (optional, defaults to today)
+ * Query: ?date=2024-10-01 (optional, defaults to all)
  * Maps to: Nutrition.tsx MealCard list
  */
 export const getMeals = asyncHandler(async (req, res) => {
@@ -97,4 +97,63 @@ export const getDailySummary = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, summary, "Daily summary fetched"));
+});
+
+/**
+ * PUT /api/nutrition/meals/:id
+ * Protected — only the owner can update their meal.
+ */
+export const updateMeal = asyncHandler(async (req, res) => {
+  const meal = await MealLog.findById(req.params.id);
+
+  if (!meal) {
+    throw new ApiError(404, "Meal not found");
+  }
+
+  if (meal.user.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only edit your own meals");
+  }
+
+  const allowedFields = [
+    "name", "type", "calories", "protein", "carbs", "fats", "items", "time",
+  ];
+
+  const updates = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field];
+    }
+  }
+
+  const updated = await MealLog.findByIdAndUpdate(
+    req.params.id,
+    { $set: updates },
+    { new: true, runValidators: true }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updated, "Meal updated successfully"));
+});
+
+/**
+ * DELETE /api/nutrition/meals/:id
+ * Protected — only the owner can delete their meal.
+ */
+export const deleteMeal = asyncHandler(async (req, res) => {
+  const meal = await MealLog.findById(req.params.id);
+
+  if (!meal) {
+    throw new ApiError(404, "Meal not found");
+  }
+
+  if (meal.user.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only delete your own meals");
+  }
+
+  await MealLog.findByIdAndDelete(req.params.id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Meal deleted successfully"));
 });

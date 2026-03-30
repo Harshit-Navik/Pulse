@@ -10,11 +10,21 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    register(name, email, password);
-    navigate('/dashboard');
+    setError(null);
+    setLoading(true);
+    try {
+      await register(name, email, password);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,6 +75,16 @@ export default function Register() {
             <p className="text-on-surface-variant text-sm font-light">Join the Monolith. Begin your performance ritual.</p>
           </div>
 
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-900/20 border border-red-500/50 text-red-500 text-xs font-black uppercase tracking-widest"
+            >
+              System Error: {error}
+            </motion.div>
+          )}
+
           <form onSubmit={handleRegister} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="register-name" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Full Name</label>
@@ -107,13 +127,21 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full py-5 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98] shadow-2xl shadow-primary/20"
+              disabled={loading}
+              className="w-full py-5 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98] shadow-2xl shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
             >
-              Create Account
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div>
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </form>
 
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-outline"></div>
             </div>
@@ -127,7 +155,7 @@ export default function Register() {
               <Chrome className="w-4 h-4 text-on-surface-variant group-hover:text-on-surface transition-colors" />
               <span className="text-[9px] font-black uppercase tracking-widest">Google</span>
             </button>
-          </div>
+          </div> */}
 
           <p className="text-center text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
             Already a member? <Link to="/login" className="text-primary hover:text-on-surface transition-colors">Sign In</Link>
