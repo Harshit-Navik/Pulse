@@ -63,13 +63,19 @@ export const workoutAPI = {
     difficulty?: string;
     equipment?: string;
     description?: string;
-    exercises?: Array<{ name: string; sets: number; reps: string; rest?: string }>;
+    image?: string;
+    exercises?: Array<{ name: string; sets: number; reps: string; duration?: string; rest?: string; notes?: string }>;
   }) => api.post('/workouts', data),
 
   update: (id: string, data: Record<string, unknown>) =>
     api.put(`/workouts/${id}`, data),
 
   delete: (id: string) => api.delete(`/workouts/${id}`),
+
+  addExercise: (
+    workoutId: string,
+    data: { name: string; sets: number; reps: string; duration?: string; rest?: string; notes?: string }
+  ) => api.post(`/workouts/${workoutId}/exercises`, data),
 };
 
 // ── Meal / Nutrition API ───────────────────────────────────────────
@@ -94,6 +100,34 @@ export const mealAPI = {
     api.put(`/nutrition/meals/${id}`, data),
 
   delete: (id: string) => api.delete(`/nutrition/meals/${id}`),
+};
+
+export const dietAPI = {
+  getAll: () => api.get("/nutrition/diets"),
+
+  getById: (id: string) => api.get(`/nutrition/diets/${id}`),
+
+  create: (data: { title: string; dietName?: string; description?: string; meals?: Array<Record<string, unknown>> }) =>
+    api.post("/nutrition/diets", data),
+
+  update: (id: string, data: { title?: string; description?: string }) =>
+    api.put(`/nutrition/diets/${id}`, data),
+
+  delete: (id: string) => api.delete(`/nutrition/diets/${id}`),
+
+  addMeal: (
+    dietId: string,
+    data: {
+      name: string;
+      calories?: number;
+      protein?: number;
+      carbs?: number;
+      fats?: number;
+      quantity?: string;
+      time?: string;
+      notes?: string;
+    }
+  ) => api.post(`/nutrition/diets/${dietId}/meals`, data),
 };
 
 // ── Contact API ────────────────────────────────────────────────────

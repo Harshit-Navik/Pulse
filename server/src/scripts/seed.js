@@ -26,7 +26,7 @@ const defaultWorkouts = [
       { name: "Barbell Row", sets: 3, reps: "10", rest: "90 sec" },
       { name: "Face Pulls", sets: 3, reps: "15", rest: "60 sec" },
     ],
-    isPublic: true,
+    isDefault: true,
     createdBy: null,
   },
   {
@@ -56,7 +56,7 @@ const defaultWorkouts = [
       },
       { name: "Cool Down Jog", sets: 1, reps: "5 min", rest: "-" },
     ],
-    isPublic: true,
+    isDefault: true,
     createdBy: null,
   },
   {
@@ -91,7 +91,7 @@ const defaultWorkouts = [
       },
       { name: "Pigeon Pose Hold", sets: 2, reps: "60 sec each", rest: "-" },
     ],
-    isPublic: true,
+    isDefault: true,
     createdBy: null,
   },
   {
@@ -127,7 +127,7 @@ const defaultWorkouts = [
         rest: "90 sec",
       },
     ],
-    isPublic: true,
+    isDefault: true,
     createdBy: null,
   },
 ];
@@ -138,12 +138,13 @@ async function seed() {
     console.log("✅ Connected to MongoDB");
 
     // Check if workouts already exist
-    const existing = await Workout.countDocuments({ isPublic: true, createdBy: null });
+    const existing = await Workout.countDocuments({ isDefault: true, createdBy: null });
     if (existing >= 4) {
       console.log(`ℹ️  ${existing} platform workouts already exist. Skipping seed.`);
     } else {
       // Remove old platform defaults and re-insert
-      await Workout.deleteMany({ isPublic: true, createdBy: null });
+      await Workout.deleteMany({ isPublic: true, createdBy: null }); // Also delete the legacy ones
+      await Workout.deleteMany({ isDefault: true, createdBy: null });
       const result = await Workout.insertMany(defaultWorkouts);
       console.log(`🌱 Seeded ${result.length} default workouts`);
     }

@@ -9,7 +9,8 @@ import {
   ChevronDown,
   Plus,
   ChevronUp,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
@@ -42,12 +43,23 @@ interface WorkoutItem {
   equipment: string;
   image: string;
   createdBy?: string | null;
+  isDefault?: boolean;
+}
+
+interface WorkoutExerciseForm {
+  name: string;
+  sets: number;
+  reps: string;
+  duration?: string;
+  rest?: string;
+  notes?: string;
 }
 
 export default function Workouts() {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeDiscipline, setActiveDiscipline] = useState(0);
+  const [showMyLibrary, setShowMyLibrary] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [fabModalOpen, setFabModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -66,6 +78,7 @@ export default function Workouts() {
   const [formTag, setFormTag] = useState('Strength');
   const [formDifficulty, setFormDifficulty] = useState('BEGINNER');
   const [formEquipment, setFormEquipment] = useState('');
+  const [formExercises, setFormExercises] = useState<WorkoutExerciseForm[]>([]);
 
   // ── FETCH ──────────────────────────────────────────────────────
   const fetchWorkouts = useCallback(async () => {
@@ -99,6 +112,8 @@ export default function Workouts() {
         tag: formTag.toUpperCase(),
         difficulty: formDifficulty,
         equipment: formEquipment.trim() || 'NONE',
+        exercises: formExercises,
+        image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&h=600&fit=crop' // Default custom image
       });
       setFabModalOpen(false);
       resetForm();
@@ -111,7 +126,7 @@ export default function Workouts() {
   };
 
   // ── UPDATE ─────────────────────────────────────────────────────
-  const openEdit = (w: WorkoutItem) => {
+  const openEdit = async (w: WorkoutItem) => {
     setEditTarget(w);
     setFormTitle(w.title);
     setFormDuration(w.duration);
@@ -119,6 +134,17 @@ export default function Workouts() {
     setFormDifficulty(w.difficulty);
     setFormEquipment(w.equipment === 'NONE' ? '' : w.equipment);
     setEditModalOpen(true);
+    
+    // Fetch full workout to dynamically populate exercises since list view doesn't return them
+    try {
+      const res = await workoutAPI.getById(w._id || w.id);
+      if (res.data.data.exercises) {
+        setFormExercises(res.data.data.exercises);
+      }
+    } catch (e) {
+      console.error(e);
+      setFormExercises([]);
+    }
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -134,6 +160,7 @@ export default function Workouts() {
         tag: formTag.toUpperCase(),
         difficulty: formDifficulty,
         equipment: formEquipment.trim() || 'NONE',
+        exercises: formExercises,
       });
       setEditModalOpen(false);
       resetForm();
@@ -170,12 +197,15 @@ export default function Workouts() {
 
   const resetForm = () => {
     setFormTitle(''); setFormDuration(''); setFormTag('Strength');
-    setFormDifficulty('BEGINNER'); setFormEquipment(''); setEditTarget(null); setError(null);
+    setFormDifficulty('BEGINNER'); setFormEquipment(''); setFormExercises([]); setEditTarget(null); setError(null);
   };
 
   // ── FILTER + SORT ──────────────────────────────────────────────
   const filteredWorkouts = useMemo(() => {
     let list = [...workouts];
+    if (showMyLibrary) {
+      list = list.filter(w => isOwner(w));
+    }
     if (activeDiscipline !== 0) {
       const selectedTag = disciplines[activeDiscipline].toUpperCase();
       list = list.filter(w => w.tag === selectedTag);
@@ -261,6 +291,43 @@ export default function Workouts() {
           />
         </div>
       </div>
+
+      {/* Dynamic Exercises Form */}
+      <div className="space-y-4 pt-6 border-t border-outline">
+        <div className="flex justify-between items-center">
+          <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Exercises ({formExercises.length})</label>
+          <button 
+            type="button" 
+            onClick={() => setFormExercises([...formExercises, { name: '', sets: 1, reps: '', duration: '', rest: '', notes: '' }])}
+            className="text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:text-primary/80 transition-colors"
+          >
+            + Add Exercise
+          </button>
+        </div>
+        
+        {formExercises.map((ex, i) => (
+          <div key={i} className="p-4 border border-outline bg-surface-lowest space-y-4 relative group transition-all">
+            <button 
+              type="button" 
+              onClick={() => setFormExercises(formExercises.filter((_, idx) => idx !== i))}
+              className="absolute top-2 right-2 p-1 text-on-surface-variant hover:text-red-500 transition-colors z-10"
+              title="Remove Exercise"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <div className="pr-6">
+              <input type="text" value={ex.name} onChange={e => { const newEx = [...formExercises]; newEx[i].name = e.target.value; setFormExercises(newEx); }} placeholder="Exercise Name" className="w-full bg-surface border border-outline px-3 py-2 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary outline-none" required />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <input type="number" min="1" value={ex.sets} onChange={e => { const newEx = [...formExercises]; newEx[i].sets = parseInt(e.target.value) || 1; setFormExercises(newEx); }} placeholder="Sets" className="w-full bg-surface border border-outline px-3 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none" required />
+              <input type="text" value={ex.reps} onChange={e => { const newEx = [...formExercises]; newEx[i].reps = e.target.value; setFormExercises(newEx); }} placeholder="Reps (e.g. 8-12)" className="w-full bg-surface border border-outline px-3 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none" required />
+              <input type="text" value={ex.duration} onChange={e => { const newEx = [...formExercises]; newEx[i].duration = e.target.value; setFormExercises(newEx); }} placeholder="Duration (e.g. 60s)" className="w-full bg-surface border border-outline px-3 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none" />
+              <input type="text" value={ex.rest} onChange={e => { const newEx = [...formExercises]; newEx[i].rest = e.target.value; setFormExercises(newEx); }} placeholder="Rest (e.g. 90s)" className="w-full bg-surface border border-outline px-3 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none" />
+            </div>
+            <input type="text" value={ex.notes || ''} onChange={e => { const newEx = [...formExercises]; newEx[i].notes = e.target.value; setFormExercises(newEx); }} placeholder="Notes (optional)" className="w-full bg-surface border border-outline px-3 py-2 text-sm text-on-surface focus:ring-1 focus:ring-primary outline-none" />
+          </div>
+        ))}
+      </div>
     </>
   );
 
@@ -287,12 +354,20 @@ export default function Workouts() {
               </motion.div>
               
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <button className="px-8 py-4 bg-primary text-on-primary font-black text-[10px] tracking-[0.3em] uppercase transition-all hover:brightness-110 active:scale-95">
+                <button 
+                  onClick={() => setShowMyLibrary(false)}
+                  className={cn("px-8 py-4 font-black text-[10px] tracking-[0.3em] uppercase transition-all active:scale-95", !showMyLibrary ? "bg-primary text-on-primary hover:brightness-110" : "border border-outline text-on-surface hover:bg-surface-bright")}
+                >
                   Browse All
                 </button>
-                <button className="px-8 py-4 border border-outline text-on-surface font-black text-[10px] tracking-[0.3em] uppercase hover:bg-surface-bright transition-all active:scale-95">
-                  My Library
-                </button>
+                {user && (
+                  <button 
+                    onClick={() => setShowMyLibrary(true)}
+                    className={cn("px-8 py-4 font-black text-[10px] tracking-[0.3em] uppercase transition-all active:scale-95", showMyLibrary ? "bg-primary text-on-primary hover:brightness-110" : "border border-outline text-on-surface hover:bg-surface-bright")}
+                  >
+                    My Library
+                  </button>
+                )}
               </div>
             </div>
           </section>
@@ -341,6 +416,7 @@ export default function Workouts() {
                   key={w._id || w.id}
                   {...w}
                   id={w._id || w.id}
+                  isDefault={w.isDefault !== false}
                   onEdit={isOwner(w) ? () => openEdit(w) : undefined}
                   onDelete={isOwner(w) ? () => openDelete(w) : undefined}
                 />

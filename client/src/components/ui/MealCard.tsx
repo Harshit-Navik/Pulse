@@ -8,6 +8,7 @@ export interface MealItem {
 }
 
 export interface MealCardProps {
+  key?: React.Key;
   id?: string;
   time: string;
   type: string;

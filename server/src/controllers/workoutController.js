@@ -13,7 +13,7 @@ export const getWorkouts = asyncHandler(async (req, res) => {
 
   const filter = {
     $or: [
-      { isPublic: true },
+      { isDefault: true },
       { createdBy: req.user._id }
     ]
   };
@@ -65,7 +65,7 @@ export const getWorkoutById = asyncHandler(async (req, res) => {
  * Maps to: Workouts.tsx Quick-Add modal
  */
 export const createWorkout = asyncHandler(async (req, res) => {
-  const { title, duration, tag, difficulty, equipment, description, exercises } =
+  const { title, duration, tag, difficulty, equipment, description, exercises, image } =
     req.body;
 
   if (!title || !duration || !tag) {
@@ -79,9 +79,10 @@ export const createWorkout = asyncHandler(async (req, res) => {
     difficulty: difficulty?.toUpperCase() || "BEGINNER",
     equipment: equipment || "NONE",
     description: description || "",
+    image: image || "",
     exercises: exercises || [],
     createdBy: req.user._id,
-    isPublic: false,
+    isDefault: false,
   });
 
   return res
@@ -100,14 +101,14 @@ export const updateWorkout = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Workout not found");
   }
 
-  // Allow editing if the user created it OR if it has no creator (platform default)
-  if (workout.createdBy && workout.createdBy.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, "You can only edit your own workouts");
+  // Prevent editing of default platform workouts, and ensure ownership
+  if (workout.isDefault || (workout.createdBy && workout.createdBy.toString() !== req.user._id.toString())) {
+    throw new ApiError(403, "You can only edit your own custom workouts");
   }
 
   const allowedFields = [
     "title", "tag", "duration", "difficulty", "equipment",
-    "image", "description", "exercises", "isPublic",
+    "image", "description", "exercises"
   ];
 
   const updates = {};
@@ -141,8 +142,9 @@ export const deleteWorkout = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Workout not found");
   }
 
-  if (workout.createdBy && workout.createdBy.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, "You can only delete your own workouts");
+  // Prevent deleting of default platform workouts, and ensure ownership
+  if (workout.isDefault || (workout.createdBy && workout.createdBy.toString() !== req.user._id.toString())) {
+    throw new ApiError(403, "You can only delete your own custom workouts");
   }
 
   await Workout.findByIdAndDelete(req.params.id);
@@ -150,4 +152,43 @@ export const deleteWorkout = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Workout deleted successfully"));
+});
+
+/**
+ * POST /api/workouts/:id/exercises
+ * Protected — only the creator can add exercises directly.
+ */
+export const addExerciseToWorkout = asyncHandler(async (req, res) => {
+  const workout = await Workout.findById(req.params.id);
+
+  if (!workout) {
+    throw new ApiError(404, "Workout not found");
+  }
+
+  // Prevent modifying default workouts and ensure ownership
+  if (workout.isDefault || (workout.createdBy && workout.createdBy.toString() !== req.user._id.toString())) {
+    throw new ApiError(403, "You can only edit your own custom workouts");
+  }
+
+  const { name, sets, reps, duration, rest, notes } = req.body;
+
+  if (!name) {
+    throw new ApiError(400, "Exercise name is required");
+  }
+
+  const newExercise = {
+    name,
+    sets: sets || 1,
+    reps: reps || "",
+    duration: duration || "",
+    rest: rest || "-",
+    notes: notes || "",
+  };
+
+  workout.exercises.push(newExercise);
+  await workout.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, workout, "Exercise added successfully"));
 });

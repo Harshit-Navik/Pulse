@@ -6,6 +6,7 @@ import {
   createWorkout,
   updateWorkout,
   deleteWorkout,
+  addExerciseToWorkout,
 } from "../controllers/workoutController.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -20,5 +21,6 @@ router.get("/:id", getWorkoutById);
 router.post("/", createWorkout);
 router.put("/:id", updateWorkout);
 router.delete("/:id", deleteWorkout);
+router.post("/:id/exercises", addExerciseToWorkout);
 
 export default router;

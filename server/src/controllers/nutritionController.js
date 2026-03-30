@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asynHandler.js";
 import { ApiError } from "../utils/ApiErrors.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { MealLog } from "../models/mealLog.model.js";
+import { Diet } from "../models/diet.model.js";
 
 /**
  * POST /api/nutrition/meals
@@ -156,4 +157,155 @@ export const deleteMeal = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Meal deleted successfully"));
+});
+
+/**
+ * GET /api/nutrition/diets
+ * Protected — returns only current user's diets.
+ */
+export const getDiets = asyncHandler(async (req, res) => {
+  const diets = await Diet.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, diets, "Diets fetched successfully"));
+});
+
+/**
+ * GET /api/nutrition/diets/:id
+ * Protected — owner-only access.
+ */
+export const getDietById = asyncHandler(async (req, res) => {
+  const diet = await Diet.findById(req.params.id);
+
+  if (!diet) {
+    throw new ApiError(404, "Diet not found");
+  }
+
+  if (diet.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to view this diet");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, diet, "Diet fetched successfully"));
+});
+
+/**
+ * POST /api/nutrition/diets
+ * Body: { title, description }
+ */
+export const createDiet = asyncHandler(async (req, res) => {
+  const incomingTitle = req.body?.title ?? req.body?.dietName ?? req.body?.name;
+  const incomingDescription = req.body?.description ?? req.body?.notes ?? "";
+  const incomingMeals = Array.isArray(req.body?.meals) ? req.body.meals : [];
+
+  if (!incomingTitle?.trim()) {
+    throw new ApiError(400, "Diet title is required");
+  }
+
+  const diet = await Diet.create({
+    title: incomingTitle.trim(),
+    description: incomingDescription?.trim() || "",
+    createdBy: req.user._id,
+    meals: incomingMeals,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, diet, "Diet created successfully"));
+});
+
+/**
+ * PUT /api/nutrition/diets/:id
+ * Protected — owner-only.
+ */
+export const updateDiet = asyncHandler(async (req, res) => {
+  const diet = await Diet.findById(req.params.id);
+
+  if (!diet) {
+    throw new ApiError(404, "Diet not found");
+  }
+
+  if (diet.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only edit your own diets");
+  }
+
+  const updates = {};
+  if (req.body.title !== undefined || req.body.dietName !== undefined) {
+    updates.title = req.body.title ?? req.body.dietName;
+  }
+  if (req.body.description !== undefined || req.body.notes !== undefined) {
+    updates.description = req.body.description ?? req.body.notes;
+  }
+
+  const updated = await Diet.findByIdAndUpdate(
+    req.params.id,
+    { $set: updates },
+    { new: true, runValidators: true }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updated, "Diet updated successfully"));
+});
+
+/**
+ * DELETE /api/nutrition/diets/:id
+ * Protected — owner-only.
+ */
+export const deleteDiet = asyncHandler(async (req, res) => {
+  const diet = await Diet.findById(req.params.id);
+
+  if (!diet) {
+    throw new ApiError(404, "Diet not found");
+  }
+
+  if (diet.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You can only delete your own diets");
+  }
+
+  await Diet.findByIdAndDelete(req.params.id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Diet deleted successfully"));
+});
+
+/**
+ * POST /api/nutrition/diets/:id/meals
+ * Body: { name, calories, protein, carbs, fats, quantity, time, notes }
+ * Protected — owner-only.
+ */
+export const addMealToDiet = asyncHandler(async (req, res) => {
+  const diet = await Diet.findById(req.params.id);
+
+  if (!diet) {
+    throw new ApiError(404, "Diet not found");
+  }
+
+  if (diet.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to modify this diet");
+  }
+
+  if (!req.body?.name?.trim()) {
+    throw new ApiError(400, "Meal name is required");
+  }
+
+  diet.meals.push({
+    name: req.body.name.trim(),
+    calories: req.body.calories || 0,
+    protein: req.body.protein || 0,
+    carbs: req.body.carbs || 0,
+    fats: req.body.fats || 0,
+    quantity: req.body.quantity || "",
+    time: req.body.time || "",
+    notes: req.body.notes || "",
+  });
+
+  await diet.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, diet, "Meal added to diet successfully"));
 });

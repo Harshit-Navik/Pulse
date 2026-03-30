@@ -27,6 +27,14 @@ const exerciseSchema = new mongoose.Schema(
       default: "-",
       trim: true,
     },
+    duration: {
+      type: String,
+      trim: true,
+    },
+    notes: {
+      type: String,
+      trim: true,
+    },
   },
   { _id: false }
 );
@@ -93,7 +101,7 @@ const workoutSchema = new mongoose.Schema(
     },
 
     // Distinguishes platform defaults from user-created workouts
-    isPublic: {
+    isDefault: {
       type: Boolean,
       default: false,
     },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export interface WorkoutCardProps {
   id: string;
@@ -10,11 +11,12 @@ export interface WorkoutCardProps {
   difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'ELITE' | 'EXPERT';
   equipment: string;
   image: string;
+  isDefault?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
-export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, image, onEdit, onDelete }: WorkoutCardProps) {
+export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, image, isDefault = true, onEdit, onDelete }: WorkoutCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -26,8 +28,14 @@ export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, i
           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale brightness-75 contrast-125"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute top-6 left-6">
-          <span className="bg-primary px-3 py-1 text-[9px] font-black tracking-[0.2em] uppercase text-on-primary">{tag}</span>
+        <div className="absolute top-6 left-6 flex flex-col gap-2">
+          <span className="bg-primary px-3 py-1 text-[9px] font-black tracking-[0.2em] uppercase text-on-primary w-fit">{tag}</span>
+          <span className={cn(
+            "px-3 py-1 text-[9px] font-black tracking-[0.2em] uppercase w-fit border backdrop-blur-sm",
+            isDefault ? "bg-surface/80 text-on-surface-variant border-outline" : "bg-primary/20 text-primary border-primary/30"
+          )}>
+            {isDefault ? "System" : "Custom"}
+          </span>
         </div>
         {/* Edit / Delete buttons — shown only when callbacks are provided */}
         {(onEdit || onDelete) && (

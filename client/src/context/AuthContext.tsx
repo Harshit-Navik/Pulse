@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { authAPI } from '@/lib/api';
 
 interface User {
-  _id?: string;
+  _id: string;
   name: string;
   email: string;
   tier: string;
@@ -20,6 +20,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const DEFAULT_USER: User = {
+  _id: '',
   name: 'Julian Pierce',
   email: 'j.pierce@monolith.com',
   tier: 'Elite',
@@ -32,7 +33,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem('pulse_user');
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    // Normalize: ensure _id is always a plain string (handles both ObjectId objects and strings)
+    if (parsed && !parsed._id && (parsed as any).id) {
+      parsed._id = (parsed as any).id;
+    }
+    return parsed as User;
   });
 
   const [loading, setLoading] = useState(true);
@@ -45,6 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .getProfile()
         .then((res) => {
           const u = res.data.data;
+          // Normalize _id — Mongoose may return it as string or ObjectId-wrapped
+          if (u && !u._id && (u as any).id) u._id = (u as any).id;
           setUser(u);
           setIsAuthenticated(true);
           localStorage.setItem('pulse_auth', 'true');
@@ -62,6 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const res = await authAPI.login(email, password);
     const { user: u, accessToken } = res.data.data;
+    // Normalize _id
+    if (u && !u._id && (u as any).id) u._id = (u as any).id;
     localStorage.setItem('pulse_auth', 'true');
     localStorage.setItem('pulse_user', JSON.stringify(u));
     if (accessToken) localStorage.setItem('pulse_token', accessToken);
@@ -72,6 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (name: string, email: string, password: string) => {
     const res = await authAPI.register(name, email, password);
     const { user: u, accessToken } = res.data.data;
+    // Normalize _id
+    if (u && !u._id && (u as any).id) u._id = (u as any).id;
     localStorage.setItem('pulse_auth', 'true');
     localStorage.setItem('pulse_user', JSON.stringify(u));
     if (accessToken) localStorage.setItem('pulse_token', accessToken);

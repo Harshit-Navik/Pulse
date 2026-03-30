@@ -10,18 +10,25 @@ import {
   Dumbbell, 
   Zap,
   CheckCircle2,
-  Circle
+  Circle,
+  Loader2,
+  Plus
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { Modal } from '@/components/ui/Modal';
+import { workoutAPI } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface Exercise {
   name: string;
   sets: number;
   reps: string;
-  rest: string;
+  duration?: string;
+  rest?: string;
+  notes?: string;
   completed: boolean;
 }
 
@@ -111,21 +118,68 @@ const workoutDatabase: Record<string, WorkoutData> = {
 };
 
 export default function WorkoutDetail() {
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [workout, setWorkout] = useState<WorkoutData | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Modal states
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [exForm, setExForm] = useState({ name: '', sets: 1, reps: '', duration: '', rest: '', notes: '' });
+
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const workout = id ? workoutDatabase[id] : null;
-
   useEffect(() => {
-    if (workout) {
-      setExercises(workout.exercises.map(e => ({ ...e })));
-    }
+    if (!id) return;
+    
+    const fetchWorkout = async () => {
+      try {
+        const res = await workoutAPI.getById(id);
+        const data = res.data.data;
+        setWorkout(data);
+        setExercises(data.exercises.map((e: any) => ({ ...e, completed: false })));
+      } catch (error) {
+        // Fallback to local
+        const localWorkout = workoutDatabase[id];
+        if (localWorkout) {
+          setWorkout(localWorkout);
+          setExercises(localWorkout.exercises.map(e => ({ ...e, completed: false })));
+        } else {
+          setWorkout(null);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchWorkout();
   }, [id]);
+
+  const isOwner = user && workout && workout.createdBy === user._id && !workout.isDefault;
+
+  const handleAddExercise = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !exForm.name.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await workoutAPI.addExercise(id, { ...exForm, sets: Number(exForm.sets) || 1 });
+      const updatedWorkout = res.data.data;
+      setWorkout(updatedWorkout);
+      setExercises(updatedWorkout.exercises.map((ex: any) => ({ ...ex, completed: false })));
+      setAddModalOpen(false);
+      setExForm({ name: '', sets: 1, reps: '', duration: '', rest: '', notes: '' });
+    } catch (err: any) {
+      alert(err.message || 'Failed to add exercise');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Timer logic
   useEffect(() => {
@@ -151,6 +205,15 @@ export default function WorkoutDetail() {
 
   const completedCount = exercises.filter(e => e.completed).length;
   const progressPercentage = exercises.length > 0 ? (completedCount / exercises.length) * 100 : 0;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant">Intializing Protocol...</p>
+      </div>
+    );
+  }
 
   if (!workout) {
     return (
@@ -225,22 +288,40 @@ export default function WorkoutDetail() {
           <div className="grid grid-cols-12 gap-8">
             {/* Exercise List */}
             <div className="col-span-12 lg:col-span-8 space-y-4">
-              <h3 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-6">Exercise Protocol</h3>
-              
-              {/* Progress bar */}
-              <div className="mb-8">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
-                  <span className="text-on-surface-variant">Progress</span>
-                  <span className="text-primary">{completedCount}/{exercises.length} Complete</span>
+              <section className="mb-20">
+                <div className="flex justify-between items-end mb-8 flex-wrap gap-4">
+                  <div>
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-2">Protocol</h2>
+                    <h3 className="font-headline text-2xl font-black uppercase text-on-surface leading-none tracking-tight items-center flex gap-4">
+                      Exercises <span className="text-primary text-sm bg-primary/10 px-3 py-1">{exercises.length}</span>
+                    </h3>
+                  </div>
+                  
+                  {isOwner && (
+                    <button
+                      onClick={() => setAddModalOpen(true)}
+                      className="flex items-center gap-2 bg-surface-lowest border border-outline px-4 py-2 hover:bg-surface hover:border-primary/40 transition-all active:scale-95 group"
+                    >
+                      <Plus className="w-4 h-4 text-primary group-hover:scale-125 transition-transform" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant group-hover:text-primary transition-colors mt-0.5">Add Exercise</span>
+                    </button>
+                  )}
                 </div>
-                <div className="w-full h-1.5 bg-surface-highest rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-primary"
-                    animate={{ width: `${progressPercentage}%` }}
-                    transition={{ duration: 0.5 }}
-                  />
+                
+                <div className="space-y-4 relative">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
+                    <span className="text-on-surface-variant">Progress</span>
+                    <span className="text-primary">{completedCount}/{exercises.length} Complete</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-surface-highest rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-primary"
+                      animate={{ width: `${progressPercentage}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
                 </div>
-              </div>
+              </section>
 
               {exercises.map((exercise, i) => (
                 <motion.div
@@ -268,20 +349,35 @@ export default function WorkoutDetail() {
                     )}>
                       {exercise.name}
                     </p>
+                    {exercise.notes && (
+                      <p className="text-xs text-on-surface-variant mt-1 italic">{exercise.notes}</p>
+                    )}
                   </div>
-                  <div className="flex gap-4 sm:gap-6 text-right flex-shrink-0">
-                    <div>
-                      <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Sets</p>
-                      <p className="text-sm font-bold text-on-surface">{exercise.sets}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Reps</p>
-                      <p className="text-sm font-bold text-on-surface">{exercise.reps}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Rest</p>
-                      <p className="text-sm font-bold text-on-surface">{exercise.rest}</p>
-                    </div>
+                  <div className="flex flex-wrap gap-4 sm:gap-6 text-right flex-shrink-0 justify-end">
+                    {exercise.sets > 0 && (
+                      <div>
+                        <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Sets</p>
+                        <p className="text-sm font-bold text-on-surface">{exercise.sets}</p>
+                      </div>
+                    )}
+                    {exercise.reps && (
+                      <div>
+                        <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Reps</p>
+                        <p className="text-sm font-bold text-on-surface">{exercise.reps}</p>
+                      </div>
+                    )}
+                    {exercise.duration && (
+                      <div>
+                        <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Time</p>
+                        <p className="text-sm font-bold text-on-surface">{exercise.duration}</p>
+                      </div>
+                    )}
+                    {exercise.rest && exercise.rest !== '-' && (
+                      <div>
+                        <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Rest</p>
+                        <p className="text-sm font-bold text-on-surface">{exercise.rest}</p>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -353,6 +449,80 @@ export default function WorkoutDetail() {
 
         <Footer />
       </main>
+
+      {/* Add Exercise Modal */}
+      <Modal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} title="Add Exercise">
+        <form onSubmit={handleAddExercise} className="space-y-6">
+          <div className="space-y-4">
+            <input 
+              type="text" 
+              value={exForm.name} 
+              onChange={e => setExForm({ ...exForm, name: e.target.value })} 
+              placeholder="EXERCISE NAME *" 
+              className="w-full bg-surface-lowest border border-outline px-4 py-3 text-xs font-black tracking-widest uppercase focus:border-primary outline-none transition-colors" 
+              required 
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <input 
+                type="number" 
+                min="1" 
+                value={exForm.sets} 
+                onChange={e => setExForm({ ...exForm, sets: parseInt(e.target.value) || 1 })} 
+                placeholder="SETS *" 
+                className="w-full bg-surface-lowest border border-outline px-4 py-3 text-xs font-black tracking-widest uppercase focus:border-primary outline-none transition-colors" 
+                required 
+              />
+              <input 
+                type="text" 
+                value={exForm.reps} 
+                onChange={e => setExForm({ ...exForm, reps: e.target.value })} 
+                placeholder="REPS (E.G. 8-12)" 
+                className="w-full bg-surface-lowest border border-outline px-4 py-3 text-xs font-black tracking-widest uppercase focus:border-primary outline-none transition-colors" 
+              />
+              <input 
+                type="text" 
+                value={exForm.duration} 
+                onChange={e => setExForm({ ...exForm, duration: e.target.value })} 
+                placeholder="TIME (E.G. 60S)" 
+                className="w-full bg-surface-lowest border border-outline px-4 py-3 text-xs font-black tracking-widest uppercase focus:border-primary outline-none transition-colors" 
+              />
+              <input 
+                type="text" 
+                value={exForm.rest} 
+                onChange={e => setExForm({ ...exForm, rest: e.target.value })} 
+                placeholder="REST (E.G. 90S)" 
+                className="w-full bg-surface-lowest border border-outline px-4 py-3 text-xs font-black tracking-widest uppercase focus:border-primary outline-none transition-colors" 
+              />
+            </div>
+            <input 
+              type="text" 
+              value={exForm.notes} 
+              onChange={e => setExForm({ ...exForm, notes: e.target.value })} 
+              placeholder="NOTES (OPTIONAL)" 
+              className="w-full bg-surface-lowest border border-outline px-4 py-3 text-xs font-black tracking-widest uppercase focus:border-primary outline-none transition-colors" 
+            />
+          </div>
+          
+          <div className="flex gap-4 pt-4 border-t border-outline">
+            <button 
+              type="button" 
+              onClick={() => setAddModalOpen(false)} 
+              className="px-6 py-3 border border-outline text-on-surface font-black text-[10px] tracking-[0.3em] uppercase hover:bg-surface-lowest transition-all w-1/2"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={submitting || !exForm.name.trim()} 
+              className={cn("px-6 py-3 font-black text-[10px] tracking-[0.3em] uppercase transition-all w-1/2", 
+                submitting || !exForm.name.trim() ? "bg-surface-bright text-on-surface-variant cursor-not-allowed" : "bg-primary text-on-primary hover:brightness-110 active:scale-95"
+              )}
+            >
+              {submitting ? "Adding..." : "Add to Workout"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
