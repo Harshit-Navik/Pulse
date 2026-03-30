@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@200;400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 @theme {
   --color-background: #0B0B0B;
@@ -17,7 +17,7 @@
   --color-outline-variant: rgba(255, 255, 255, 0.15);
 
   --font-headline: "Manrope", sans-serif;
-  --font-body: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
 }
 
 @layer base {

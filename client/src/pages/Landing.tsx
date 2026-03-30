@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Fingerprint, Dumbbell, Zap, ArrowRight, ChevronDown, Shield, Activity, Heart, Send } from 'lucide-react';
+import { Fingerprint, Dumbbell, Zap, ArrowRight, ChevronDown, Shield, Activity, Heart, Send, Bot, Utensils } from 'lucide-react';
 import { LandingNavbar } from '@/components/layout/LandingNavbar';
 import { Footer } from '@/components/layout/Footer';
 import { Link } from 'react-router-dom';
@@ -35,7 +35,7 @@ export default function Landing() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <section className="relative isolate min-h-screen flex items-center justify-center overflow-hidden pt-20">
           <div className="absolute inset-0 kinetic-grid pointer-events-none opacity-50"></div>
 
           <div className="container mx-auto px-8 md:px-24 z-10 flex flex-col items-center text-center">
@@ -82,11 +82,12 @@ export default function Landing() {
           </div>
 
           {/* Hero Background Image */}
-          <div className="absolute inset-0 -z-10 opacity-20 pointer-events-none bg-black">
+          <div className="absolute inset-0 -z-10 overflow-hidden bg-black">
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent z-10 pointer-events-none"></div>
             <img
-              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1920&fit=crop"
+              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1920&auto=format&fit=crop"
               alt="Gym Performance Training"
-              className="w-full h-full object-cover grayscale contrast-125 brightness-50 mix-blend-luminosity"
+              className="w-full h-full object-cover object-center opacity-50"
               referrerPolicy="no-referrer"
             />
           </div>
@@ -95,26 +96,33 @@ export default function Landing() {
         {/* Features Grid */}
         <section id="features" className="py-32 md:py-48 bg-background relative border-y border-outline/30">
           <div className="container mx-auto px-8 md:px-24">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-outline/30 border border-outline/30">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-outline/30 border border-outline/30">
               <FeatureCard
                 index="01"
-                category="Logic"
-                title="Precision Performance"
-                description="Continuous biometric integration filtering every heartbeat into actionable performance data."
-                icon={Fingerprint}
+                category="Intelligence"
+                title="AI Fitness Assistant"
+                description="Smart AI chatbot that provides personalized workout and diet guidance."
+                icon={Bot}
               />
               <FeatureCard
                 index="02"
-                category="Power"
-                title="Elite Regimens"
-                description="Workout programs designed by world-class coaches, optimized for your specific genetic profile."
+                category="Architecture"
+                title="Custom Workout Builder"
+                description="Users can create, manage, and track their own workout routines with detailed exercises."
                 icon={Dumbbell}
               />
               <FeatureCard
                 index="03"
-                category="Balance"
-                title="Metabolic Recovery"
-                description="Surgical precision in nutrition and restorative sleep protocols to ensure peak state daily."
+                category="Fuel"
+                title="Nutrition Tracker"
+                description="Add meals, track macros (protein, carbs, fats), and manage personalized diet plans."
+                icon={Utensils}
+              />
+              <FeatureCard
+                index="04"
+                category="Synthesis"
+                title="Personalized Plans"
+                description="Automatically generates tailored workout and diet plans based on user input and goals."
                 icon={Zap}
               />
             </div>
@@ -396,7 +404,7 @@ export default function Landing() {
 
 function FeatureCard({ index, category, title, description, icon: Icon }: any) {
   return (
-    <div className="bg-surface p-8 sm:p-12 flex flex-col justify-between min-h-[280px] sm:aspect-square group hover:bg-surface-bright transition-all duration-500 cursor-default">
+    <div className="bg-surface p-8 sm:p-12 flex flex-col justify-between min-h-[350px] lg:min-h-[420px] group hover:bg-surface-bright transition-all duration-500 cursor-default">
       <div>
         <div className="w-12 h-12 rounded-sm bg-primary/5 flex items-center justify-center mb-10 group-hover:bg-primary/10 transition-colors">
           <Icon className="text-primary w-6 h-6" />
