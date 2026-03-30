@@ -14,10 +14,14 @@ import {
   Clock,
   Target,
   Flame,
+  CheckCircle,
+  AlertCircle,
+  Save,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
+import { dietAPI, workoutAPI } from '@/lib/api';
 
 const API_BASE = 'http://localhost:5000/api/chat';
 
@@ -34,7 +38,10 @@ interface Plan {
   summary: string;
   dailyCalories: number;
   macros: { protein: string; carbs: string; fats: string };
-  diet: { meal: string; time: string; items: string[]; calories: number }[];
+  diet: { meal: string; time: string; items: string[]; calories: number; protein?: number; carbs?: number; fats?: number }[];
+  workoutTag?: string;
+  workoutDifficulty?: string;
+  workoutDuration?: string;
   workout: { exercise: string; sets: number; reps: string; rest: string }[];
   tips: string[];
 }
@@ -514,6 +521,74 @@ export default function Chatbot() {
 
 /* ─── Plan Card Component ─── */
 function PlanCard({ plan }: { plan: Plan }) {
+  const [savingDiet, setSavingDiet] = useState(false);
+  const [dietSaved, setDietSaved] = useState(false);
+  const [dietError, setDietError] = useState('');
+
+  const [savingWorkout, setSavingWorkout] = useState(false);
+  const [workoutSaved, setWorkoutSaved] = useState(false);
+  const [workoutError, setWorkoutError] = useState('');
+
+  const handleSaveDiet = async () => {
+    setSavingDiet(true);
+    setDietError('');
+    try {
+      await dietAPI.create({
+        title: "AI Custom Diet Plan",
+        description: plan.summary,
+        meals: plan.diet.map(m => ({
+          name: m.meal,
+          calories: m.calories || 0,
+          protein: m.protein || 0,
+          carbs: m.carbs || 0,
+          fats: m.fats || 0,
+          time: m.time || "",
+          notes: m.items.join(", ")
+        }))
+      });
+      setDietSaved(true);
+    } catch (err: any) {
+      setDietError(err.message || 'Failed to save diet plan');
+    } finally {
+      setSavingDiet(false);
+    }
+  };
+
+  const handleSaveWorkout = async () => {
+    setSavingWorkout(true);
+    setWorkoutError('');
+    try {
+      const tag = plan.workoutTag || "HYBRID";
+      const imageMap: Record<string, string> = {
+        STRENGTH: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000&auto=format&fit=crop",
+        CARDIO: "https://images.unsplash.com/photo-1538805060514-97d9cc17730c?q=80&w=1000&auto=format&fit=crop",
+        MOBILITY: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=1000&auto=format&fit=crop",
+        HYBRID: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1000&auto=format&fit=crop",
+        RECOVERY: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1000&auto=format&fit=crop"
+      };
+
+      await workoutAPI.create({
+        title: "AI Custom Workout Plan",
+        tag: tag,
+        difficulty: plan.workoutDifficulty || "BEGINNER",
+        duration: plan.workoutDuration || "45 MINS",
+        image: imageMap[tag] || imageMap["HYBRID"],
+        description: plan.summary,
+        exercises: plan.workout.map(ex => ({
+          name: ex.exercise,
+          sets: ex.sets,
+          reps: String(ex.reps),
+          rest: ex.rest || "-"
+        }))
+      });
+      setWorkoutSaved(true);
+    } catch (err: any) {
+      setWorkoutError(err.message || 'Failed to save workout plan');
+    } finally {
+      setSavingWorkout(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -578,6 +653,24 @@ function PlanCard({ plan }: { plan: Plan }) {
             </div>
           ))}
         </div>
+        <div className="mt-5 pt-5 border-t border-outline flex items-center justify-between">
+          <div className="text-[10px] text-on-surface-variant max-w-[60%] leading-relaxed">
+            {dietError && <span className="text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {dietError}</span>}
+            {dietSaved && <span className="text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Saved to My Diet Plans!</span>}
+          </div>
+          <button
+            onClick={handleSaveDiet}
+            disabled={savingDiet || dietSaved}
+            className={`px-4 py-2 border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+              dietSaved
+                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 opacity-100 cursor-not-allowed'
+                : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:scale-95 disabled:opacity-50'
+            }`}
+          >
+            {savingDiet ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : dietSaved ? <CheckCircle className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+            {savingDiet ? 'Saving...' : dietSaved ? 'Saved' : 'Save Diet Plan'}
+          </button>
+        </div>
       </div>
 
       {/* Workout Plan */}
@@ -604,6 +697,24 @@ function PlanCard({ plan }: { plan: Plan }) {
               </div>
             </div>
           ))}
+        </div>
+        <div className="mt-5 pt-5 border-t border-outline flex items-center justify-between">
+          <div className="text-[10px] text-on-surface-variant max-w-[60%] leading-relaxed">
+            {workoutError && <span className="text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {workoutError}</span>}
+            {workoutSaved && <span className="text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Saved to My Workout Plans!</span>}
+          </div>
+          <button
+            onClick={handleSaveWorkout}
+            disabled={savingWorkout || workoutSaved}
+            className={`px-4 py-2 border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+              workoutSaved
+                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 opacity-100 cursor-not-allowed'
+                : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:scale-95 disabled:opacity-50'
+            }`}
+          >
+            {savingWorkout ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : workoutSaved ? <CheckCircle className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+            {savingWorkout ? 'Saving...' : workoutSaved ? 'Saved' : 'Save Workout'}
+          </button>
         </div>
       </div>
 

@@ -128,12 +128,15 @@ Respond in this exact JSON format (no markdown, just raw JSON):
   "dailyCalories": number,
   "macros": { "protein": "Xg", "carbs": "Xg", "fats": "Xg" },
   "diet": [
-    { "meal": "Breakfast", "time": "8:00 AM", "items": ["item1", "item2"], "calories": number },
-    { "meal": "Snack", "time": "10:30 AM", "items": ["item1"], "calories": number },
-    { "meal": "Lunch", "time": "1:00 PM", "items": ["item1", "item2"], "calories": number },
-    { "meal": "Snack", "time": "4:00 PM", "items": ["item1"], "calories": number },
-    { "meal": "Dinner", "time": "7:00 PM", "items": ["item1", "item2"], "calories": number }
+    { "meal": "Breakfast", "time": "8:00 AM", "items": ["item1", "item2"], "calories": number, "protein": number, "carbs": number, "fats": number },
+    { "meal": "Snack", "time": "10:30 AM", "items": ["item1"], "calories": number, "protein": number, "carbs": number, "fats": number },
+    { "meal": "Lunch", "time": "1:00 PM", "items": ["item1", "item2"], "calories": number, "protein": number, "carbs": number, "fats": number },
+    { "meal": "Snack", "time": "4:00 PM", "items": ["item1"], "calories": number, "protein": number, "carbs": number, "fats": number },
+    { "meal": "Dinner", "time": "7:00 PM", "items": ["item1", "item2"], "calories": number, "protein": number, "carbs": number, "fats": number }
   ],
+  "workoutTag": "MUST BE EXACTLY ONE OF: STRENGTH, CARDIO, MOBILITY, HYBRID, RECOVERY",
+  "workoutDifficulty": "MUST BE EXACTLY ONE OF: BEGINNER, ADVANCED, EXPERT, ELITE",
+  "workoutDuration": "e.g., 45 MINS",
   "workout": [
     { "exercise": "name", "sets": number, "reps": "X-X", "rest": "Xs" }
   ],
@@ -217,12 +220,15 @@ function generateFallbackPlan({ age, gender, height, weight, goal, activityLevel
       fats: `${Math.round(dailyCalories * 0.3 / 9)}g`,
     },
     diet: [
-      { meal: "Breakfast", time: "8:00 AM", items: isVeg ? ["Oatmeal with berries & almond butter", "Green smoothie"] : ["Scrambled eggs with spinach", "Whole wheat toast", "Black coffee"], calories: Math.round(dailyCalories * 0.25) },
-      { meal: "Morning Snack", time: "10:30 AM", items: isVeg ? ["Mixed nuts & dried fruits"] : ["Greek yogurt with honey"], calories: Math.round(dailyCalories * 0.1) },
-      { meal: "Lunch", time: "1:00 PM", items: isVeg ? ["Quinoa bowl with roasted vegetables", "Lentil soup"] : ["Grilled chicken breast", "Brown rice", "Steamed broccoli"], calories: Math.round(dailyCalories * 0.3) },
-      { meal: "Afternoon Snack", time: "4:00 PM", items: isVeg ? ["Hummus with carrot sticks"] : ["Protein shake", "Apple"], calories: Math.round(dailyCalories * 0.1) },
-      { meal: "Dinner", time: "7:00 PM", items: isVeg ? ["Tofu stir-fry with vegetables", "Brown rice"] : ["Salmon fillet", "Sweet potato", "Mixed salad"], calories: Math.round(dailyCalories * 0.25) },
+      { meal: "Breakfast", time: "8:00 AM", items: isVeg ? ["Oatmeal with berries & almond butter", "Green smoothie"] : ["Scrambled eggs with spinach", "Whole wheat toast", "Black coffee"], calories: Math.round(dailyCalories * 0.25), protein: Math.round((dailyCalories * 0.25 * 0.3) / 4), carbs: Math.round((dailyCalories * 0.25 * 0.4) / 4), fats: Math.round((dailyCalories * 0.25 * 0.3) / 9) },
+      { meal: "Morning Snack", time: "10:30 AM", items: isVeg ? ["Mixed nuts & dried fruits"] : ["Greek yogurt with honey"], calories: Math.round(dailyCalories * 0.1), protein: Math.round((dailyCalories * 0.1 * 0.3) / 4), carbs: Math.round((dailyCalories * 0.1 * 0.4) / 4), fats: Math.round((dailyCalories * 0.1 * 0.3) / 9) },
+      { meal: "Lunch", time: "1:00 PM", items: isVeg ? ["Quinoa bowl with roasted vegetables", "Lentil soup"] : ["Grilled chicken breast", "Brown rice", "Steamed broccoli"], calories: Math.round(dailyCalories * 0.3), protein: Math.round((dailyCalories * 0.3 * 0.3) / 4), carbs: Math.round((dailyCalories * 0.3 * 0.4) / 4), fats: Math.round((dailyCalories * 0.3 * 0.3) / 9) },
+      { meal: "Afternoon Snack", time: "4:00 PM", items: isVeg ? ["Hummus with carrot sticks"] : ["Protein shake", "Apple"], calories: Math.round(dailyCalories * 0.1), protein: Math.round((dailyCalories * 0.1 * 0.3) / 4), carbs: Math.round((dailyCalories * 0.1 * 0.4) / 4), fats: Math.round((dailyCalories * 0.1 * 0.3) / 9) },
+      { meal: "Dinner", time: "7:00 PM", items: isVeg ? ["Tofu stir-fry with vegetables", "Brown rice"] : ["Salmon fillet", "Sweet potato", "Mixed salad"], calories: Math.round(dailyCalories * 0.25), protein: Math.round((dailyCalories * 0.25 * 0.3) / 4), carbs: Math.round((dailyCalories * 0.25 * 0.4) / 4), fats: Math.round((dailyCalories * 0.25 * 0.3) / 9) },
     ],
+    workoutTag: goal === "Fat Loss" ? "CARDIO" : goal === "Muscle Gain" ? "STRENGTH" : "HYBRID",
+    workoutDifficulty: activityLevel === "Very Active" ? "ADVANCED" : "BEGINNER",
+    workoutDuration: "45 MINS",
     workout: goal === "Fat Loss" ? [
       { exercise: "Jump Rope", sets: 3, reps: "60 sec", rest: "30s" },
       { exercise: "Bodyweight Squats", sets: 4, reps: "15-20", rest: "45s" },
