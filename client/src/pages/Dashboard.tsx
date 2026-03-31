@@ -195,7 +195,7 @@ export default function Dashboard() {
       {/* FAB */}
       <button 
         onClick={() => setFabModalOpen(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary flex items-center justify-center rounded-sm shadow-2xl hover:brightness-125 hover:scale-105 transition-all active:scale-95 group z-50"
+        className="fixed bottom-6 right-6 sm:bottom-12 sm:right-12 w-14 h-14 sm:w-16 sm:h-16 bg-primary text-on-primary flex items-center justify-center rounded-sm shadow-2xl transition-all hover:brightness-125 hover:scale-105 active:scale-95 group z-50"
       >
         <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-500" />
       </button>

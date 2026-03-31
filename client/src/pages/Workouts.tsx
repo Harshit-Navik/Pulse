@@ -471,7 +471,7 @@ export default function Workouts() {
       {/* FAB */}
       <button 
         onClick={() => { resetForm(); setFabModalOpen(true); }}
-        className="fixed bottom-6 right-6 sm:bottom-12 sm:right-12 w-14 h-14 sm:w-16 sm:h-16 bg-primary text-on-primary flex items-center justify-center shadow-2xl transition-transform active:scale-90 group z-50 hover:brightness-110"
+        className="fixed bottom-6 right-6 sm:bottom-12 sm:right-12 w-14 h-14 sm:w-16 sm:h-16 bg-primary text-on-primary flex items-center justify-center rounded-sm shadow-2xl transition-all hover:brightness-125 hover:scale-105 active:scale-95 group z-50"
       >
         <Plus className="w-8 h-8 font-black" />
       </button>

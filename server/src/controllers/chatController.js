@@ -21,13 +21,22 @@ const withTimeout = (promise, ms) => {
  * Handle a single chat message exchange.
  * Body: { message: string, history: Array<{role, parts}> }
  */
+const DEFAULT_SYSTEM_PROMPT = `You are PULSE AI Coach — a professional fitness and nutrition expert.
+Help users with gym workouts, fat loss, muscle gain, diet plans, and wellness.
+Tone: Motivational, direct, practical. Like a personal trainer texting their client.
+Format: Use short paragraphs or bullet points. Keep answers action-oriented and easy to follow.
+Constraints: Only answer fitness, gym, diet, nutrition, and wellness questions.`;
+
 export async function handleChatMessage(req, res) {
   try {
-    const { message, history = [] } = req.body;
+    const { message, history = [], systemPrompt } = req.body;
 
     if (!message || typeof message !== "string") {
       return res.status(400).json({ error: "Message is required" });
     }
+
+    // Sanitize: strip any HTML tags from user message
+    const sanitizedMessage = message.replace(/<[^>]*>/g, "").trim().slice(0, 2000);
 
     const groq = getGroqAI();
     if (!groq) {
@@ -38,11 +47,21 @@ export async function handleChatMessage(req, res) {
       });
     }
 
-    const messages = history.map((msg) => ({
-      role: msg.role === "model" ? "assistant" : msg.role,
-      content: msg.text,
-    }));
-    messages.push({ role: "user", content: message });
+    // Build message array: system → history → current user message
+    const activeSysPrompt = (typeof systemPrompt === "string" && systemPrompt.trim())
+      ? systemPrompt.trim().slice(0, 2000)
+      : DEFAULT_SYSTEM_PROMPT;
+
+    const messages = [
+      { role: "system", content: activeSysPrompt },
+      ...history
+        .slice(-20) // keep last 20 turns to stay within context limits
+        .map((msg) => ({
+          role: msg.role === "model" ? "assistant" : msg.role,
+          content: String(msg.text || "").slice(0, 2000),
+        })),
+      { role: "user", content: sanitizedMessage },
+    ];
 
     const response = await withTimeout(
       groq.chat.completions.create({
