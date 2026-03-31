@@ -18,8 +18,8 @@ export function LandingNavbar() {
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline/30">
       <div className="max-w-7xl mx-auto flex justify-between items-center py-6 px-8 md:px-12">
-        <Link to="/" className="text-3xl font-black text-primary italic font-headline uppercase tracking-tighter">
-          PULSE
+        <Link to="/" className="flex items-center">
+          <img src="/images/logo.svg" alt="App Logo" className="h-8 md:h-10 w-auto object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-x-10">

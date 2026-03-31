@@ -51,8 +51,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}>
         <div className="mb-12 px-8 flex items-center justify-between">
           <Link to="/" className="block">
-            <h1 className="text-2xl font-black italic text-primary uppercase tracking-widest font-headline">PULSE</h1>
-            <p className="text-[10px] tracking-[0.3em] uppercase text-on-surface-variant font-bold mt-1">Performance</p>
+            <img src="/images/logo.svg" alt="App Logo" className="h-8 w-auto object-contain mb-1" />
+            <p className="text-[10px] tracking-[0.3em] uppercase text-on-surface-variant font-bold">Performance</p>
           </Link>
           {/* Close button for mobile */}
           <button 

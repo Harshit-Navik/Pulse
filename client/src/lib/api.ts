@@ -149,4 +149,24 @@ export const bmiAPI = {
   getHistory: () => api.get('/bmi/history'),
 };
 
+// ── Progress API ───────────────────────────────────────────────────
+export const progressAPI = {
+  /** Aggregated dashboard data: user summary, weekly chart, nutrition, recent sessions */
+  getDashboard: () => api.get('/progress/dashboard'),
+
+  /** All-time stats + 7-day chart + streak */
+  getStats: () => api.get('/progress/stats'),
+
+  /** Recent workout sessions */
+  getSessions: (limit = 20) => api.get('/progress/sessions', { params: { limit } }),
+
+  /** Weight log history */
+  getWeightHistory: (limit = 30) => api.get('/progress/weight', { params: { limit } }),
+
+  /** Add a new weight entry */
+  addWeight: (weight: number, unit: string = 'kg', date?: string) =>
+    api.post('/progress/weight', { weight, unit, date }),
+};
+
 export default api;
+

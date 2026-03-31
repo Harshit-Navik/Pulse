@@ -40,8 +40,8 @@ export default function Register() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-7xl lg:text-9xl font-black italic text-primary uppercase tracking-tighter leading-none mb-4">PULSE</h1>
-            <p className="text-xl tracking-[0.6em] uppercase text-on-surface-variant font-black">Begin Your Ritual</p>
+            <img src="/images/logo.svg" alt="App Logo" className="h-14 lg:h-20 w-auto object-contain mb-6 drop-shadow-xl" />
+            <p className="text-xl tracking-[0.6em] uppercase text-on-surface-variant font-black lg:pl-1">Begin Your Ritual</p>
           </motion.div>
 
           <div className="space-y-6 max-w-md">
