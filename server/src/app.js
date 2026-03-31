@@ -18,7 +18,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://pulse-g4jk.onrender.com"
+  "https://pulse-oxys.onrender.com"
 ];
 
 app.use(cors({
