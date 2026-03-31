@@ -1,6 +1,6 @@
 import React from 'react';
-import { Search, Bell, Menu } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Search, Bell, Menu, User } from 'lucide-react';
+import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 interface TopBarProps {
@@ -47,18 +47,32 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
         </button>
 
         <div className="flex items-center gap-4 pl-4 md:pl-6 border-l border-outline">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-on-surface uppercase tracking-tight">{user?.name || 'Alexander Thorne'}</p>
-            <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest">{user?.tier || 'Premium'} Member</p>
-          </div>
-          <div className="w-10 h-10 rounded-sm overflow-hidden border border-outline ring-1 ring-primary/10">
-            <img 
-              src="https://picsum.photos/seed/athlete/100/100" 
-              alt="User Profile" 
-              className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 transition-all duration-500"
-              referrerPolicy="no-referrer"
-            />
-          </div>
+          {!user ? (
+            <Link to="/login" className="flex items-center gap-3 group">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-on-surface uppercase tracking-tight group-hover:text-primary transition-colors">Guest User</p>
+                <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest group-hover:text-primary/70 transition-colors">Sign In to Save Progress</p>
+              </div>
+              <div className="w-10 h-10 rounded-sm overflow-hidden border border-outline ring-1 ring-primary/10 bg-surface-lowest flex items-center justify-center">
+                <User className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
+              </div>
+            </Link>
+          ) : (
+            <>
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-on-surface uppercase tracking-tight">{user.name || 'Athlete'}</p>
+                <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest">{user.tier || 'Premium'} Member</p>
+              </div>
+              <div className="w-10 h-10 rounded-sm overflow-hidden border border-outline ring-1 ring-primary/10">
+                <img 
+                  src="https://picsum.photos/seed/athlete/100/100" 
+                  alt="User Profile" 
+                  className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 transition-all duration-500"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -9,13 +9,15 @@ import {
   Award,
   X,
   Calculator,
-  Bot
+  Bot,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { name: 'Workouts', icon: Dumbbell, path: '/workouts' },
+  { name: 'Exercises', icon: BookOpen, path: '/exercises' },
   { name: 'Nutrition', icon: Utensils, path: '/nutrition' },
   { name: 'Progress', icon: TrendingUp, path: '/progress' },
   { name: 'BMI Calc', icon: Calculator, path: '/bmi' },

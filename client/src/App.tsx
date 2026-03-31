@@ -12,6 +12,7 @@ import Nutrition from './pages/Nutrition';
 import Progress from './pages/Progress';
 import Profile from './pages/Profile';
 import BMICalculator from './pages/BMICalculator';
+import ExerciseLibrary from './pages/ExerciseLibrary';
 import Chatbot from './pages/Chatbot';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -23,6 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/exercises" element={<ExerciseLibrary />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           
