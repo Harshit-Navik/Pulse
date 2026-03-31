@@ -43,7 +43,7 @@ Constraints: Only answer fitness, gym, diet, nutrition, and wellness questions. 
 
 /* ─── API call ─── */
 async function sendMessage(message: string, history: HistoryEntry[]): Promise<string> {
-  const response = await fetch('http://localhost:5000/api/chat', {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

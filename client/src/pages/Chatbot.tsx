@@ -23,7 +23,7 @@ import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
 import { dietAPI, workoutAPI } from '@/lib/api';
 
-const API_BASE = 'http://localhost:5000/api/chat';
+const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api/chat`;
 
 interface Message {
   id: string;
