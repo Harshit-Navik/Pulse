@@ -6,7 +6,6 @@ import {
   Utensils, 
   TrendingUp, 
   User, 
-  Award,
   X,
   Calculator,
   Bot,
@@ -85,22 +84,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </nav>
 
-        <div className="mt-auto px-8">
-          <div className="p-4 bg-surface-bright rounded-sm border border-outline/50">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-sm bg-primary/10 flex items-center justify-center">
-                <Award className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Elite Status</p>
-                <p className="text-xs text-on-surface font-bold">Day 42 Streak</p>
-              </div>
-            </div>
-            <div className="w-full bg-surface h-1 rounded-full overflow-hidden">
-              <div className="bg-primary h-full w-2/3 shadow-[0_0_8px_rgba(255,59,59,0.5)]"></div>
-            </div>
-          </div>
-        </div>
       </aside>
     </>
   );

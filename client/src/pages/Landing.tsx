@@ -313,7 +313,7 @@ export default function Landing() {
                 <div className="space-y-6">
                   <div>
                     <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em] mb-2">Email</p>
-                    <p className="text-on-surface font-headline font-bold text-lg uppercase italic">support@pulse.monolith</p>
+                    <p className="text-on-surface font-headline font-bold text-lg uppercase italic"> pulse.trackit@gmail.com</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em] mb-2">Response Time</p>
