@@ -63,10 +63,11 @@ app.get("/api/health", (_req, res) => {
 // API lives under /api/* only — never use /products for backend routes.
 if (fs.existsSync(spaIndexHtml)) {
   app.use(express.static(clientDist));
-  app.get("*", (req, res, next) => {
+  // Express 5 / path-to-regexp does not support app.get("*", ...).
+  app.use((req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     if (req.method !== "GET" && req.method !== "HEAD") return next();
-    res.sendFile(spaIndexHtml);
+    res.sendFile(spaIndexHtml, (err) => next(err));
   });
 }
 

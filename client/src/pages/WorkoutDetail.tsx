@@ -18,7 +18,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
 import { Modal } from '@/components/ui/Modal';
-import { workoutAPI } from '@/lib/api';
+import { workoutAPI, progressAPI } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -34,6 +34,9 @@ interface Exercise {
 
 interface WorkoutData {
   id: string;
+  _id?: string;
+  createdBy?: string;
+  isDefault?: boolean;
   tag: string;
   title: string;
   duration: string;
@@ -42,6 +45,28 @@ interface WorkoutData {
   image: string;
   description: string;
   exercises: Exercise[];
+}
+
+function isMongoId(s: string) {
+  return /^[a-f\d]{24}$/i.test(s);
+}
+
+/** Parse "65 MINS" / "45 mins" → minutes */
+function parsePlanDurationMinutes(s: string): number {
+  const m = s.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 45;
+}
+
+/** Rough kcal estimate from time + tag + share of exercises completed (not medical-grade). */
+function estimateCaloriesBurned(
+  durationMinutes: number,
+  tag: string,
+  progressPct: number
+): number {
+  const mult =
+    tag === 'CARDIO' ? 10 : tag === 'MOBILITY' ? 3.5 : tag === 'HYBRID' ? 8.5 : 7.5;
+  const completionFactor = 0.65 + 0.35 * (progressPct / 100);
+  return Math.round(Math.min(900, Math.max(80, durationMinutes * mult * completionFactor)));
 }
 
 const workoutDatabase: Record<string, WorkoutData> = {
@@ -134,6 +159,7 @@ export default function WorkoutDetail() {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [loggingSession, setLoggingSession] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -142,7 +168,7 @@ export default function WorkoutDetail() {
       try {
         const res = await workoutAPI.getById(id);
         const data = res.data.data;
-        setWorkout(data);
+        setWorkout({ ...data, id: data._id || data.id });
         setExercises(data.exercises.map((e: any) => ({ ...e, completed: false })));
       } catch (error) {
         // Fallback to local
@@ -162,6 +188,50 @@ export default function WorkoutDetail() {
   }, [id]);
 
   const isOwner = user && workout && workout.createdBy === user._id && !workout.isDefault;
+
+  const handleLogSession = async () => {
+    if (!workout || !user) {
+      alert('Sign in to save this workout to your progress.');
+      navigate('/login');
+      return;
+    }
+    if (completedCount < 1 && timerSeconds < 45) {
+      alert('Check off at least one exercise or run the timer for a bit so we can log your session.');
+      return;
+    }
+    const planMins = parsePlanDurationMinutes(workout.duration);
+    const elapsedMins = Math.max(1, Math.round(timerSeconds / 60));
+    const durationMinutes = Math.min(Math.max(elapsedMins, 1), planMins * 2);
+    const caloriesBurned = estimateCaloriesBurned(durationMinutes, workout.tag, progressPercentage);
+    const workoutRef =
+      id && isMongoId(id) ? id : workout._id && isMongoId(String(workout._id)) ? String(workout._id) : undefined;
+
+    const sessionExercises = exercises.map((e) => ({
+      name: e.name,
+      sets: e.sets,
+      reps: e.reps || `${e.sets} sets`,
+      rest: e.rest || '-',
+      completed: e.completed,
+    }));
+
+    setLoggingSession(true);
+    try {
+      await progressAPI.logSession({
+        workout: workoutRef || null,
+        title: workout.title,
+        duration: durationMinutes,
+        volume: `${completedCount}/${exercises.length} exercises`,
+        caloriesBurned,
+        exercises: sessionExercises,
+      });
+      navigate('/dashboard');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to log workout';
+      alert(msg);
+    } finally {
+      setLoggingSession(false);
+    }
+  };
 
   const handleAddExercise = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -395,7 +465,7 @@ export default function WorkoutDetail() {
                   <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.4em] mt-2">Elapsed Time</p>
                 </div>
 
-                <div className="flex justify-center gap-4">
+                <div className="flex justify-center gap-4 flex-wrap">
                   <button
                     onClick={() => setTimerRunning(!timerRunning)}
                     className={cn(
@@ -418,6 +488,30 @@ export default function WorkoutDetail() {
                     <RotateCcw className="w-4 h-4" />
                   </button>
                 </div>
+
+                <p className="mt-6 text-center text-[9px] text-on-surface-variant font-light leading-relaxed px-1">
+                  Checking exercises only saves on this screen. Use <span className="font-bold text-on-surface">Log to progress</span> to update Dashboard &amp; Progress.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => handleLogSession()}
+                  disabled={loggingSession}
+                  className={cn(
+                    'mt-4 w-full py-4 font-black text-[10px] uppercase tracking-[0.25em] transition-all border',
+                    loggingSession
+                      ? 'border-outline text-on-surface-variant cursor-wait'
+                      : 'border-primary bg-primary/10 text-primary hover:bg-primary hover:text-on-primary'
+                  )}
+                >
+                  {loggingSession ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Saving…
+                    </span>
+                  ) : (
+                    'Log to progress'
+                  )}
+                </button>
 
                 {/* Quick Stats */}
                 <div className="mt-10 pt-8 border-t border-outline space-y-6">

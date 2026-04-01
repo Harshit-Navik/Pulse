@@ -245,6 +245,26 @@ export const progressAPI = {
   /** Recent workout sessions */
   getSessions: (limit = 20) => api.get('/progress/sessions', { params: { limit } }),
 
+  /**
+   * Save a completed (or partial) workout so Dashboard / Progress update.
+   * Backend stores caloriesBurned as provided — we estimate on the client from duration + discipline.
+   */
+  logSession: (data: {
+    workout?: string | null;
+    title: string;
+    duration: number;
+    volume?: string;
+    caloriesBurned?: number;
+    exercises?: Array<{
+      name: string;
+      sets: number;
+      reps: string;
+      rest?: string;
+      completed?: boolean;
+    }>;
+    completedAt?: string;
+  }) => api.post('/progress/sessions', data),
+
   /** Weight log history */
   getWeightHistory: (limit = 30) => api.get('/progress/weight', { params: { limit } }),
 
