@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
 // ── Route imports ──────────────────────────────────────────────────
 import chatRoutes from "./routes/chatRoutes.js";
@@ -13,6 +16,11 @@ import productRoutes from "./routes/productRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDist = path.resolve(__dirname, "../../client/dist");
+const spaIndexHtml = path.join(clientDist, "index.html");
 
 // ── Middleware ──────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -50,6 +58,17 @@ app.use("/api/progress", progressRoutes);
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// ── SPA fallback (production): serve Vite build + client-side routes ─
+// API lives under /api/* only — never use /products for backend routes.
+if (fs.existsSync(spaIndexHtml)) {
+  app.use(express.static(clientDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    res.sendFile(spaIndexHtml);
+  });
+}
 
 // ── Global error handler ───────────────────────────────────────────
 app.use((err, _req, res, _next) => {

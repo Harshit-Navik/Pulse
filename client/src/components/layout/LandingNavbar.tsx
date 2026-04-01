@@ -4,13 +4,13 @@ import { Menu, X, ChevronDown, LayoutDashboard, UserCircle, LogOut } from 'lucid
 import { useAuth } from '@/context/AuthContext';
 
 const navLinks = [
-  { label: 'Home', href: '/', active: false },
-  { label: 'Features', href: '/#features', active: false },
-  { label: 'Products', href: '/products', active: false },
-  { label: 'Pricing', href: '/#pricing', active: false },
-  { label: 'FAQs', href: '/#faqs', active: false },
-  { label: 'Contact', href: '/#contact', active: false },
-];
+  { label: 'Home', to: '/', active: false },
+  { label: 'Features', to: '/#features', active: false },
+  { label: 'Products', to: '/products', active: false },
+  { label: 'Pricing', to: '/#pricing', active: false },
+  { label: 'FAQs', to: '/#faqs', active: false },
+  { label: 'Contact', to: '/#contact', active: false },
+] as const;
 
 function displayName(user: { name?: string; email?: string } | null): string {
   if (!user) return 'User';
@@ -214,9 +214,9 @@ export function LandingNavbar() {
 
         <div className="hidden md:flex items-center gap-x-10">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.label}
-              href={link.href}
+              to={link.to}
               className={
                 link.active
                   ? 'font-headline uppercase tracking-tight text-xs text-primary font-bold'
@@ -224,7 +224,7 @@ export function LandingNavbar() {
               }
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -243,9 +243,9 @@ export function LandingNavbar() {
         <div className="md:hidden border-t border-outline/30 bg-background/95 backdrop-blur-md">
           <div className="px-8 py-6 space-y-4">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.to}
                 onClick={() => setMobileOpen(false)}
                 className={
                   link.active
@@ -254,7 +254,7 @@ export function LandingNavbar() {
                 }
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             <AuthSlotMobile />
           </div>
