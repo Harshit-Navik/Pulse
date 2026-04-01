@@ -5,7 +5,19 @@ import { useAuth } from '@/context/AuthContext';
 const FloatingChatbot = lazy(() => import('@/components/ai/ChatBot'));
 
 export function ProtectedLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div
+          className="h-10 w-10 border-2 border-primary border-t-transparent rounded-full animate-spin"
+          role="status"
+          aria-label="Checking session"
+        />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

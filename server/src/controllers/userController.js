@@ -18,11 +18,12 @@ const generateAccessAndRefreshTokens = async (userId) => {
   return { accessToken, refreshToken };
 };
 
-/** Cookie options */
+/** Cookie options — lax works with credentialed CORS from the SPA origin */
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: "lax",
+  path: "/",
 };
 
 /**
@@ -177,6 +178,38 @@ export const updateProfile = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Profile updated successfully"));
+});
+
+/**
+ * PATCH /api/users/password
+ * Body: { currentPassword, newPassword }
+ */
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword?.trim()) {
+    throw new ApiError(400, "Current password and new password are required");
+  }
+  if (newPassword.length < 8) {
+    throw new ApiError(400, "New password must be at least 8 characters");
+  }
+
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const ok = await user.isPasswordCorrect(currentPassword);
+  if (!ok) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password updated successfully"));
 });
 
 /**

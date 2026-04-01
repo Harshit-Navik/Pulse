@@ -6,7 +6,8 @@ export interface QuickStatProps {
   label: string;
   value: string;
   icon: LucideIcon;
-  trend: string;
+  /** Optional badge (e.g. period label). Omit for no badge. */
+  trend?: string;
 }
 
 export function QuickStat({ label, value, icon: Icon, trend }: QuickStatProps) {
@@ -16,12 +17,18 @@ export function QuickStat({ label, value, icon: Icon, trend }: QuickStatProps) {
         <div className="p-3 bg-surface-low border border-outline group-hover:bg-primary group-hover:text-white transition-all">
           <Icon className="w-5 h-5" />
         </div>
-        <span className={cn(
-          "text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm",
-          trend.startsWith('+') ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/10 text-primary"
-        )}>
-          {trend}
-        </span>
+        {trend != null && trend !== '' && (
+          <span
+            className={cn(
+              'text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-sm',
+              trend.startsWith('+')
+                ? 'bg-emerald-500/10 text-emerald-500'
+                : 'bg-primary/10 text-primary'
+            )}
+          >
+            {trend}
+          </span>
+        )}
       </div>
       <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em] mb-1">{label}</p>
       <p className="text-4xl font-headline font-black text-on-surface italic">{value}</p>

@@ -5,6 +5,7 @@ import {
   logoutUser,
   getCurrentUser,
   updateProfile,
+  changePassword,
   refreshAccessToken,
 } from "../controllers/userController.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -18,7 +19,10 @@ router.post("/refresh-token", refreshAccessToken);
 
 // Protected routes
 router.post("/logout", verifyJWT, logoutUser);
+router.patch("/password", verifyJWT, changePassword);
 router.get("/profile", verifyJWT, getCurrentUser);
+/** Alias for session validation (same handler as profile). */
+router.get("/me", verifyJWT, getCurrentUser);
 router.patch("/profile", verifyJWT, updateProfile);
 
 export default router;

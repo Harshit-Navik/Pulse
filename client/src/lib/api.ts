@@ -2,6 +2,47 @@ import axios from 'axios';
 
 const API_BASE_URL = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
+type AuthCallbacks = {
+  onSessionInvalid?: () => void;
+};
+
+let authCallbacks: AuthCallbacks = {};
+
+/** Called from AuthProvider so 401 after failed refresh can clear React auth state. */
+export function registerAuthCallbacks(callbacks: AuthCallbacks) {
+  authCallbacks = callbacks;
+}
+
+let refreshPromise: Promise<void> | null = null;
+
+/**
+ * Refresh access token using httpOnly refresh cookie (and optional body).
+ * Uses a standalone request so the api interceptor does not recurse.
+ */
+async function refreshAccessToken(): Promise<void> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const { data } = await axios.post(
+          `${API_BASE_URL}/users/refresh-token`,
+          {},
+          {
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+        const accessToken = data?.data?.accessToken as string | undefined;
+        if (accessToken) {
+          localStorage.setItem('pulse_token', accessToken);
+        }
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
+}
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -19,10 +60,50 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ── Response interceptor: unwrap ApiResponse data ──────────────────
+// ── Response interceptor: refresh on 401, then normalize errors ────
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    if (!axios.isAxiosError(error)) {
+      return Promise.reject(error);
+    }
+
+    const originalRequest = error.config as typeof error.config & { _retry?: boolean };
+
+    // Offline / CORS / no response — preserve axios error for callers (e.g. auth bootstrap)
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+
+    const status = error.response.status;
+    const url = String(originalRequest?.url ?? '');
+
+    const isAuthRoute =
+      url.includes('/users/login') ||
+      url.includes('/users/register') ||
+      url.includes('/users/refresh-token');
+
+    if (
+      status === 401 &&
+      originalRequest &&
+      !isAuthRoute &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+      try {
+        await refreshAccessToken();
+        return api(originalRequest);
+      } catch (refreshErr) {
+        if (axios.isAxiosError(refreshErr) && !refreshErr.response) {
+          return Promise.reject(refreshErr);
+        }
+        authCallbacks.onSessionInvalid?.();
+        const message =
+          error.response?.data?.message || 'Session expired. Please sign in again.';
+        return Promise.reject(new Error(message));
+      }
+    }
+
     const message =
       error.response?.data?.message || error.message || 'Something went wrong';
     return Promise.reject(new Error(message));
@@ -43,6 +124,9 @@ export const authAPI = {
 
   updateProfile: (data: Record<string, unknown>) =>
     api.patch('/users/profile', data),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.patch('/users/password', { currentPassword, newPassword }),
 
   refreshToken: () => api.post('/users/refresh-token'),
 };
@@ -154,8 +238,9 @@ export const progressAPI = {
   /** Aggregated dashboard data: user summary, weekly chart, nutrition, recent sessions */
   getDashboard: () => api.get('/progress/dashboard'),
 
-  /** All-time stats + 7-day chart + streak */
-  getStats: () => api.get('/progress/stats'),
+  /** All-time stats + activity chart (range: week | month | year) + streak */
+  getStats: (params?: { range?: 'week' | 'month' | 'year' }) =>
+    api.get('/progress/stats', { params }),
 
   /** Recent workout sessions */
   getSessions: (limit = 20) => api.get('/progress/sessions', { params: { limit } }),

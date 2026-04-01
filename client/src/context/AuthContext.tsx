@@ -1,11 +1,38 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authAPI } from '@/lib/api';
+import React, { createContext, useContext, useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import axios from 'axios';
+import { authAPI, registerAuthCallbacks } from '@/lib/api';
 
-interface User {
+export interface User {
   _id: string;
   name: string;
   email: string;
-  tier: string;
+  tier?: string;
+  phone?: string;
+  avatar?: string;
+  height?: number;
+  weight?: number;
+  age?: number;
+  gender?: string;
+  fitnessGoal?: string;
+  activityLevel?: string;
+  dietaryPreference?: string;
+  preferences?: {
+    biometricSync?: boolean;
+    darkMode?: boolean;
+    pushNotifications?: boolean;
+    publicProfile?: boolean;
+  };
+  subscription?: {
+    plan?: string;
+    status?: string;
+    startDate?: string;
+  };
+  stats?: {
+    consistency?: number;
+    totalWorkouts?: number;
+    level?: number;
+  };
+  createdAt?: string;
 }
 
 interface AuthContextType {
@@ -15,57 +42,82 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  /** Re-fetch profile from API and sync localStorage (after profile update). */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEFAULT_USER: User = {
-  _id: '',
-  name: 'Julian Pierce',
-  email: 'j.pierce@monolith.com',
-  tier: 'Elite',
-};
+function parseStoredUser(): User | null {
+  const stored = localStorage.getItem('pulse_user');
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored) as User & { id?: string };
+    if (parsed && !parsed._id && parsed.id) parsed._id = parsed.id;
+    return parsed as User;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('pulse_auth') === 'true';
-  });
-
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('pulse_user');
-    if (!stored) return null;
-    const parsed = JSON.parse(stored);
-    // Normalize: ensure _id is always a plain string (handles both ObjectId objects and strings)
-    if (parsed && !parsed._id && (parsed as any).id) {
-      parsed._id = (parsed as any).id;
-    }
-    return parsed as User;
-  });
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Attempt to restore session from token on mount
+  useLayoutEffect(() => {
+    registerAuthCallbacks({
+      onSessionInvalid: () => {
+        localStorage.removeItem('pulse_auth');
+        localStorage.removeItem('pulse_user');
+        localStorage.removeItem('pulse_token');
+        setIsAuthenticated(false);
+        setUser(null);
+      },
+    });
+    return () => registerAuthCallbacks({});
+  }, []);
+
+  // Validate session on load: Bearer + httpOnly cookies; refresh on 401 is handled in api.ts
   useEffect(() => {
-    const token = localStorage.getItem('pulse_token');
-    if (token) {
-      authAPI
-        .getProfile()
-        .then((res) => {
-          const u = res.data.data;
-          // Normalize _id — Mongoose may return it as string or ObjectId-wrapped
-          if (u && !u._id && (u as any).id) u._id = (u as any).id;
-          setUser(u);
-          setIsAuthenticated(true);
-          localStorage.setItem('pulse_auth', 'true');
-          localStorage.setItem('pulse_user', JSON.stringify(u));
-        })
-        .catch(() => {
-          // Token expired or invalid — keep local state as fallback
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await authAPI.getProfile();
+        if (cancelled) return;
+        const u = res.data.data as User & { id?: string };
+        if (u && !u._id && u.id) u._id = u.id;
+        setUser(u);
+        setIsAuthenticated(true);
+        localStorage.setItem('pulse_auth', 'true');
+        localStorage.setItem('pulse_user', JSON.stringify(u));
+      } catch (e) {
+        if (cancelled) return;
+        if (axios.isAxiosError(e) && !e.response) {
+          const cached = parseStoredUser();
+          if (cached && localStorage.getItem('pulse_auth') === 'true') {
+            setUser(cached);
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+            setUser(null);
+          }
+          return;
+        }
+        setIsAuthenticated(false);
+        setUser(null);
+        localStorage.removeItem('pulse_auth');
+        localStorage.removeItem('pulse_user');
+        localStorage.removeItem('pulse_token');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -101,8 +153,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const res = await authAPI.getProfile();
+    const u = res.data.data as User & { id?: string };
+    if (u && !u._id && (u as { id?: string }).id) u._id = (u as { id: string }).id;
+    setUser(u);
+    localStorage.setItem('pulse_user', JSON.stringify(u));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, user, loading, login, register, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

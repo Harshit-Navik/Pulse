@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
   TrendingUp,
@@ -10,10 +11,7 @@ import {
   Clock,
   Dumbbell,
   Activity,
-  Zap,
-  Target,
   Award,
-  Scale,
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
@@ -96,7 +94,7 @@ function getMotivationalTip(data: DashboardData): string {
   const calPct = calorieTarget > 0 ? nutrition.todayCalories / calorieTarget : 0;
   const proPct = proteinTarget > 0 ? nutrition.todayProtein / proteinTarget : 0;
 
-  if (streak >= 7) return `🔥 ${streak}-day streak! Elite-level consistency. Keep the momentum.`;
+  if (streak >= 7) return `${streak}-day streak. Elite-level consistency—keep the momentum.`;
   if (calPct < 0.3 && nutrition.mealCount === 0) return 'Fuel up! You haven\'t logged any meals today. Nutrition drives performance.';
   if (proPct < 0.5) return `Protein at ${Math.round(proPct * 100)}% of target. Prioritize protein in your next meal for optimal recovery.`;
   if (calPct > 0.9) return 'Calorie target nearly reached. Ensure your macros are balanced for the rest of the day.';
@@ -113,31 +111,32 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    progressAPI.getDashboard()
+  const loadDashboard = useCallback(() => {
+    setLoading(true);
+    setError(false);
+    progressAPI
+      .getDashboard()
       .then((res) => {
         setData(res.data.data);
         setError(false);
       })
       .catch((err) => {
-        console.error("Dashboard fetch error:", err);
+        console.error('Dashboard fetch error:', err);
         setError(true);
-        if (err.response?.status === 404) {
-           setData({
-              user: { name: authUser?.name || 'Athlete', weight: null, weightUnit: 'kg', fitnessGoal: null, totalWorkouts: 0 },
-              calorieTarget: 2200, proteinTarget: 150,
-              nutrition: { todayCalories: 0, todayProtein: 0, todayCarbs: 0, todayFats: 0, mealCount: 0 },
-              weeklyChart: [], weeklyCalories: 0, activeDaysThisWeek: 0, streak: 0, totalWorkouts: 0, recentSessions: []
-           });
-        }
+        setData(null);
       })
       .finally(() => setLoading(false));
-  }, [authUser?.name]);
+  }, []);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
 
   // ── Derived values ───────────────────────────────────────────────
-  const calPct = data
-    ? Math.min((data.nutrition.todayCalories / data.calorieTarget) * 100, 100)
-    : 0;
+  const calPct =
+    data && data.calorieTarget > 0
+      ? Math.min((data.nutrition.todayCalories / data.calorieTarget) * 100, 100)
+      : 0;
   const ringCircumference = 552.92;
   const ringOffset = ringCircumference * (1 - calPct / 100);
 
@@ -155,6 +154,20 @@ export default function Dashboard() {
 
       <main className="lg:ml-64 pt-20">
         <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
+          {error && !loading && !data && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-red-500/40 bg-red-950/20 rounded-sm">
+              <p className="text-sm text-on-surface">
+                Couldn&apos;t load your dashboard. Check your connection and try again.
+              </p>
+              <button
+                type="button"
+                onClick={loadDashboard}
+                className="shrink-0 px-6 py-3 bg-primary text-on-primary text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           {/* ── Hero Header ─────────────────────────────────────────── */}
           <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
@@ -185,9 +198,11 @@ export default function Dashboard() {
                       )}
                     </p>
                     <p className="text-on-surface-variant text-sm font-light leading-relaxed">
-                      {data?.totalWorkouts === 0
-                        ? 'Start your first workout to begin tracking your performance.'
-                        : `${data?.totalWorkouts} total sessions · ${data?.activeDaysThisWeek ?? 0} active days this week · ${data?.streak ?? 0}-day streak`}
+                      {!data
+                        ? 'Load your dashboard to see sessions, streak, and weekly activity.'
+                        : data.totalWorkouts === 0
+                          ? 'Start your first workout to begin tracking your performance.'
+                          : `${data.totalWorkouts} total sessions · ${data.activeDaysThisWeek} active days this week · ${data.streak}-day streak`}
                     </p>
                   </>
                 )}
@@ -195,14 +210,61 @@ export default function Dashboard() {
             </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <button className="bg-primary text-on-primary px-8 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">
+              <Link
+                to="/workouts"
+                className="text-center bg-primary text-on-primary px-8 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20"
+              >
                 Start Workout
-              </button>
-              <button className="bg-surface border border-outline text-on-surface px-8 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-surface-bright transition-all active:scale-95">
-                View Plan
-              </button>
+              </Link>
+              <Link
+                to="/nutrition"
+                className="text-center bg-surface border border-outline text-on-surface px-8 py-4 font-black text-[10px] uppercase tracking-[0.3em] hover:bg-surface-bright transition-all active:scale-95"
+              >
+                Log Meal
+              </Link>
             </div>
           </section>
+
+          {/* ── Today's Summary ─────────────────────────────────────── */}
+          {!loading && data && (
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-outline/40 bg-surface-container/80 p-6 md:p-8">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-2">
+                  Today&apos;s calories
+                </p>
+                <p className="font-headline text-2xl font-black text-on-surface">
+                  {data.nutrition.todayCalories.toLocaleString()}{' '}
+                  <span className="text-sm font-normal text-on-surface-variant italic">kcal</span>
+                </p>
+                <p className="text-[10px] text-on-surface-variant/70 mt-1">
+                  {data.nutrition.mealCount} meal{data.nutrition.mealCount !== 1 ? 's' : ''} logged
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-2">
+                  This week (burned)
+                </p>
+                <p className="font-headline text-2xl font-black text-on-surface">
+                  {data.weeklyCalories.toLocaleString()}{' '}
+                  <span className="text-sm font-normal text-on-surface-variant italic">kcal</span>
+                </p>
+                <p className="text-[10px] text-on-surface-variant/70 mt-1">
+                  {data.activeDaysThisWeek} active day{data.activeDaysThisWeek !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-2">
+                  Streak
+                </p>
+                <p className="font-headline text-2xl font-black text-on-surface">
+                  {data.streak} <span className="text-sm font-normal text-on-surface-variant italic">days</span>
+                </p>
+                <p className="text-[10px] text-on-surface-variant/70 mt-1">
+                  {data.totalWorkouts} total workouts logged
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* ── Stats Grid ──────────────────────────────────────────── */}
           <div className="grid grid-cols-12 gap-6">
@@ -325,7 +387,7 @@ export default function Dashboard() {
                         {Math.round(calPct)}%
                       </span>
                       <span className="text-[9px] uppercase tracking-[0.4em] text-primary font-black">
-                        {data?.nutrition.mealCount === 0 ? 'No Meals' : 'Calorie Goal'}
+                        {data?.nutrition.mealCount === 0 ? 'No meals logged' : 'Toward goal'}
                       </span>
                     </>
                   )}
@@ -341,7 +403,10 @@ export default function Dashboard() {
                   <p className="text-2xl font-headline font-bold text-on-surface">
                     {(data?.nutrition.todayCalories ?? 0).toLocaleString()}{' '}
                     <span className="text-sm font-normal text-on-surface-variant italic">
-                      / {(data?.calorieTarget ?? 2200).toLocaleString()}
+                      /{' '}
+                      {data?.calorieTarget
+                        ? data.calorieTarget.toLocaleString()
+                        : '—'}
                     </span>
                   </p>
                 )}
@@ -359,7 +424,11 @@ export default function Dashboard() {
             <MetricCard
               label="Today's Protein"
               value={loading ? '—' : `${data?.nutrition.todayProtein ?? 0}`}
-              unit={`/ ${data?.proteinTarget ?? 150}g`}
+              unit={
+                data?.proteinTarget != null && data.proteinTarget > 0
+                  ? `/ ${data.proteinTarget}g`
+                  : 'g'
+              }
               icon={Utensils}
               color="text-emerald-400"
             />
@@ -435,33 +504,41 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : data ? (
                 <div className="space-y-6 relative z-10">
                   <NutritionBar
                     label="Calories"
-                    current={data?.nutrition.todayCalories ?? 0}
-                    target={data?.calorieTarget ?? 2200}
+                    current={data.nutrition.todayCalories ?? 0}
+                    target={data.calorieTarget > 0 ? data.calorieTarget : 1}
                     unit="kcal"
                     color="bg-primary"
                   />
                   <NutritionBar
                     label="Protein"
-                    current={data?.nutrition.todayProtein ?? 0}
-                    target={data?.proteinTarget ?? 150}
+                    current={data.nutrition.todayProtein ?? 0}
+                    target={data.proteinTarget > 0 ? data.proteinTarget : 1}
                     unit="g"
                     color="bg-emerald-500"
                   />
                   <NutritionBar
                     label="Carbs"
-                    current={data?.nutrition.todayCarbs ?? 0}
-                    target={Math.round((data?.calorieTarget ?? 2200) * 0.45 / 4)}
+                    current={data.nutrition.todayCarbs ?? 0}
+                    target={
+                      data.calorieTarget > 0
+                        ? Math.round((data.calorieTarget * 0.45) / 4)
+                        : 1
+                    }
                     unit="g"
                     color="bg-blue-500"
                   />
                   <NutritionBar
                     label="Fats"
-                    current={data?.nutrition.todayFats ?? 0}
-                    target={Math.round((data?.calorieTarget ?? 2200) * 0.25 / 9)}
+                    current={data.nutrition.todayFats ?? 0}
+                    target={
+                      data.calorieTarget > 0
+                        ? Math.round((data.calorieTarget * 0.25) / 9)
+                        : 1
+                    }
                     unit="g"
                     color="bg-amber-500"
                   />
@@ -474,15 +551,13 @@ export default function Dashboard() {
                       </span>
                     </div>
                     <p className="text-xs text-on-surface-variant italic leading-relaxed">
-                      {data ? getMotivationalTip(data) : 'Stay consistent.'}
+                      {getMotivationalTip(data)}
                     </p>
                   </div>
                 </div>
-              )}
-
-              {error && !loading && (
-                <p className="text-xs text-red-400 mt-4 font-light">
-                  Could not load live data. Check your connection.
+              ) : (
+                <p className="text-sm text-on-surface-variant relative z-10">
+                  Nutrition summary is unavailable. Use Retry above or try again later.
                 </p>
               )}
             </div>
@@ -503,18 +578,36 @@ export default function Dashboard() {
       {/* Quick Action Modal */}
       <Modal isOpen={fabModalOpen} onClose={() => setFabModalOpen(false)} title="Quick Action">
         <div className="space-y-4">
-          <button className="w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group">
+          <Link
+            to="/workouts"
+            onClick={() => setFabModalOpen(false)}
+            className="block w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group"
+          >
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Workout</p>
-            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">Start a New Session</p>
-          </button>
-          <button className="w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group">
+            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">
+              Start a new session
+            </p>
+          </Link>
+          <Link
+            to="/nutrition"
+            onClick={() => setFabModalOpen(false)}
+            className="block w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group"
+          >
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Nutrition</p>
-            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">Log a Meal</p>
-          </button>
-          <button className="w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group">
+            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">
+              Log a meal
+            </p>
+          </Link>
+          <Link
+            to="/progress"
+            onClick={() => setFabModalOpen(false)}
+            className="block w-full p-6 bg-surface-low border border-outline text-left hover:border-primary/40 transition-all group"
+          >
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-1">Progress</p>
-            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">Record Measurement</p>
-          </button>
+            <p className="font-headline text-lg font-black uppercase italic tracking-tight group-hover:text-primary transition-colors">
+              View progress &amp; weight
+            </p>
+          </Link>
         </div>
       </Modal>
     </div>
@@ -524,18 +617,21 @@ export default function Dashboard() {
 // ── Sub-components ─────────────────────────────────────────────────
 
 const RecentSessionItem: React.FC<{ session: RecentSession }> = ({ session }) => {
-  const imgSrc = session.workout?.image || `https://picsum.photos/seed/${session._id}/200/200?grayscale`;
-  const tag = session.workout?.tag || 'General';
+  const tag = session.workout?.tag || 'Workout';
 
   return (
     <div className="bg-surface-container p-6 flex items-center justify-between group cursor-pointer border-l-2 border-transparent hover:border-primary transition-all duration-300 overflow-hidden">
       <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-surface-low rounded-sm overflow-hidden border border-outline flex-shrink-0">
-          <img
-            src={imgSrc}
-            alt={session.title}
-            className="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-100 transition-all duration-500"
-          />
+        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-surface-low rounded-sm overflow-hidden border border-outline flex-shrink-0 flex items-center justify-center">
+          {session.workout?.image ? (
+            <img
+              src={session.workout.image}
+              alt=""
+              className="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-100 transition-all duration-500"
+            />
+          ) : (
+            <Dumbbell className="w-6 h-6 sm:w-8 sm:h-8 text-on-surface-variant/35" aria-hidden />
+          )}
         </div>
         <div className="min-w-0">
           <p className="text-[10px] text-primary font-black tracking-[0.3em] uppercase mb-1">{tag}</p>

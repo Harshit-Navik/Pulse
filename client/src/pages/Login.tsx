@@ -1,16 +1,31 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Github, Chrome } from 'lucide-react';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loading: authLoading, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div
+          className="h-10 w-10 border-2 border-primary border-t-transparent rounded-full animate-spin"
+          role="status"
+          aria-label="Checking session"
+        />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

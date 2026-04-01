@@ -74,12 +74,16 @@ export default function FloatingChatbot() {
   const [hasGreeted, setHasGreeted] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const historyRef = useRef<HistoryEntry[]>([]);
 
-  /* ── Auto-scroll ── */
+  /* ── Auto-scroll inside messages panel only (avoid scrolling the page) ── */
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = messagesScrollRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
   }, [messages, isTyping]);
 
   /* ── Focus input when panel opens ── */
@@ -253,10 +257,10 @@ export default function FloatingChatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="fixed bottom-[168px] sm:bottom-[224px] right-4 sm:right-12 z-[200] flex flex-col"
+            className="fixed bottom-[168px] sm:bottom-[224px] right-4 sm:right-12 z-[200] flex flex-col min-h-0 max-h-[min(600px,calc(100dvh-8rem))] overflow-hidden"
             style={{
               width: 'min(420px, calc(100vw - 2rem))',
-              height: 'min(600px, calc(100vh - 8rem))',
+              height: 'min(600px, calc(100dvh - 8rem))',
               background: '#0E0E0E',
               border: '1px solid #2A2A2A',
               borderRadius: '0',
@@ -326,9 +330,10 @@ export default function FloatingChatbot() {
               </div>
             </div>
 
-            {/* Messages */}
+            {/* Messages — flex-1 + min-h-0 so only this region scrolls */}
             <div
-              className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+              ref={messagesScrollRef}
+              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4 space-y-4 overscroll-contain"
               style={{
                 backgroundImage: 'radial-gradient(circle, rgba(255,59,59,0.025) 1px, transparent 1px)',
                 backgroundSize: '28px 28px',
@@ -469,7 +474,7 @@ export default function FloatingChatbot() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input bar */}
+            {/* Input bar — pinned to bottom of panel */}
             <div
               className="flex-shrink-0 px-4 py-3"
               style={{ borderTop: '1px solid #2A2A2A', background: '#0E0E0E' }}

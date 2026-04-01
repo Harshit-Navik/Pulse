@@ -88,7 +88,10 @@ export default function Chatbot() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = chatContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
   };
 
   useEffect(() => {
@@ -104,9 +107,10 @@ export default function Chatbot() {
       setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 100);
     };
 
+    handleScroll();
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [messages, isStarted]);
 
   const addBotMessage = (text: string, options?: string[], plan?: Plan | null) => {
     setIsTyping(true);
@@ -273,16 +277,16 @@ export default function Chatbot() {
   const isDone = currentStep >= STEPS.length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-dvh flex flex-col overflow-hidden bg-background">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <main className="lg:ml-64 pt-20">
-        <div className="p-6 md:p-12 max-w-5xl mx-auto">
-          {/* Chat Container */}
-          <div className="bg-surface-container border border-outline flex flex-col" style={{ height: 'calc(100vh - 8rem)', minHeight: '400px' }}>
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden lg:ml-64 pt-20 box-border">
+        <div className="flex flex-col flex-1 min-h-0 px-4 py-4 md:px-8 md:py-6 max-w-5xl mx-auto w-full">
+          {/* Chat Container — column fills viewport below TopBar; only messages scroll */}
+          <div className="bg-surface-container border border-outline flex flex-col flex-1 min-h-0 max-h-full overflow-hidden">
             {/* Chat Header */}
-            <div className="px-8 py-5 border-b border-outline flex items-center justify-between bg-surface-low/50">
+            <div className="px-8 py-5 border-b border-outline flex items-center justify-between bg-surface-low/50 flex-shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-primary/10 flex items-center justify-center relative">
                   <Bot className="w-5 h-5 text-primary" />
@@ -308,10 +312,10 @@ export default function Chatbot() {
               )}
             </div>
 
-            {/* Messages Area */}
+            {/* Messages Area — min-h-0 required so flex child can shrink and scroll internally */}
             <div
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 relative"
+              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6 md:p-8 space-y-6 relative overscroll-contain"
               style={{
                 backgroundImage: 'radial-gradient(circle, rgba(255, 59, 59, 0.02) 1px, transparent 1px)',
                 backgroundSize: '32px 32px',
@@ -451,15 +455,16 @@ export default function Chatbot() {
                 </>
               )}
 
-              {/* Scroll to bottom button */}
+              {/* Scroll to bottom — absolute inside messages so it doesn't affect layout flow */}
               <AnimatePresence>
                 {showScrollBtn && (
                   <motion.button
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
+                    type="button"
                     onClick={scrollToBottom}
-                    className="sticky bottom-4 left-1/2 -translate-x-1/2 w-10 h-10 bg-surface-bright border border-outline rounded-full flex items-center justify-center shadow-lg z-10"
+                    className="absolute bottom-4 right-4 w-10 h-10 bg-surface-bright border border-outline rounded-full flex items-center justify-center shadow-lg z-10 pointer-events-auto"
                   >
                     <ChevronDown className="w-4 h-4 text-on-surface-variant" />
                   </motion.button>
@@ -469,7 +474,7 @@ export default function Chatbot() {
 
             {/* Input Bar */}
             {isStarted && !isDone && (
-              <div className="px-6 py-4 border-t border-outline bg-surface-low/50">
+              <div className="px-6 py-4 border-t border-outline bg-surface-low/50 flex-shrink-0">
                 <div className="flex gap-3">
                   <input
                     ref={inputRef}
@@ -500,7 +505,7 @@ export default function Chatbot() {
 
             {/* Done State Input */}
             {isDone && (
-              <div className="px-6 py-4 border-t border-outline bg-surface-low/50">
+              <div className="px-6 py-4 border-t border-outline bg-surface-low/50 flex-shrink-0">
                 <button
                   onClick={handleReset}
                   className="w-full py-4 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.4em] hover:brightness-110 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
@@ -513,7 +518,9 @@ export default function Chatbot() {
           </div>
         </div>
 
-        <Footer />
+        <div className="flex-shrink-0">
+          <Footer variant="compact" />
+        </div>
       </main>
     </div>
   );

@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { 
-  TrendingUp, 
-  Activity, 
-  ChevronRight, 
+import {
+  TrendingUp,
+  Activity,
+  ChevronRight,
   Award,
   Clock,
   Flame,
   Dumbbell,
   Plus,
-  Scale
+  Scale,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Footer } from '@/components/layout/Footer';
 import { QuickStat } from '@/components/ui/QuickStat';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/utils';
-import { progressAPI } from '@/lib/api';
+import { progressAPI, authAPI } from '@/lib/api';
+import type { User } from '@/context/AuthContext';
 
-// ── Types ──────────────────────────────────────────────────────────
+type Range = 'week' | 'month' | 'year';
 
 interface Session {
   _id: string;
@@ -37,15 +39,22 @@ interface WeightEntry {
   date: string;
 }
 
+interface ChartDay {
+  day: string;
+  caloriesBurned: number;
+  duration: number;
+  hasSession: boolean;
+}
+
 interface StatsData {
   totalWorkouts: number;
   avgDuration: number;
   totalCalories: number;
-  weeklyChart: { day: string; caloriesBurned: number; duration: number; hasSession: boolean }[];
+  weeklyChart: ChartDay[];
   streak: number;
+  weeklyCalories: number;
+  range?: Range;
 }
-
-// ── Helpers ────────────────────────────────────────────────────────
 
 function formatDateShort(dateStr: string) {
   const d = new Date(dateStr);
@@ -61,131 +70,186 @@ function formatDate(dateStr: string): string {
   return `${diff} Days Ago`;
 }
 
-// ── Main Component ─────────────────────────────────────────────────
+function filterWeightsByRange(entries: WeightEntry[], range: Range): WeightEntry[] {
+  const now = new Date();
+  const cutoff = new Date();
+  if (range === 'week') cutoff.setDate(now.getDate() - 7);
+  else if (range === 'month') cutoff.setDate(now.getDate() - 30);
+  else cutoff.setFullYear(now.getFullYear() - 1);
+  return entries
+    .filter((e) => new Date(e.date) >= cutoff)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+const rangeLabel: Record<Range, string> = {
+  week: 'Last 7 days',
+  month: 'Last 30 days',
+  year: 'Last 12 months',
+};
 
 export default function Progress() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+  const [range, setRange] = useState<Range>('week');
+
   const [stats, setStats] = useState<StatsData | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [weightHistory, setWeightHistory] = useState<WeightEntry[]>([]);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Add weight logic
+  const [statsLoading, setStatsLoading] = useState(false);
+
   const [isAddingWeight, setIsAddingWeight] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [isSubmittingWeight, setIsSubmittingWeight] = useState(false);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchStats = useCallback(async (r: Range) => {
+    setStatsLoading(true);
     try {
-      const [statsRes, sessionsRes, weightRes] = await Promise.all([
-        progressAPI.getStats().catch(err => {
-          if (err.response?.status === 404 || err.response?.status === 401) return { data: { data: { totalWorkouts: 0, avgDuration: 0, totalCalories: 0, weeklyChart: [], streak: 0 } } };
-          throw err;
-        }),
-        progressAPI.getSessions(8).catch(err => {
-          if (err.response?.status === 404 || err.response?.status === 401) return { data: { data: [] } };
-          throw err;
-        }),
-        progressAPI.getWeightHistory(30).catch(err => {
-          if (err.response?.status === 404 || err.response?.status === 401) return { data: { data: [] } };
-          throw err;
-        })
-      ]);
+      const statsRes = await progressAPI.getStats({ range: r });
       setStats(statsRes.data.data);
-      setSessions(sessionsRes.data.data);
-      setWeightHistory(weightRes.data.data);
     } catch (err) {
-      console.error("Failed to fetch progress data", err);
+      console.error('Failed to fetch progress stats', err);
+      setStats(null);
     } finally {
-      setLoading(false);
+      setStatsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const [sessionsRes, weightRes, profileRes] = await Promise.all([
+          progressAPI.getSessions(12),
+          progressAPI.getWeightHistory(365),
+          authAPI.getProfile().catch(() => null),
+        ]);
+        if (cancelled) return;
+        setSessions(sessionsRes.data.data);
+        setWeightHistory(weightRes.data.data);
+        if (profileRes) {
+          setProfileUser(profileRes.data.data as User);
+        }
+      } catch (err) {
+        console.error('Failed to fetch progress data', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    fetchStats(range);
+  }, [range, fetchStats]);
 
   const handleAddWeight = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWeight || isNaN(Number(newWeight))) return;
-    
+
     setIsSubmittingWeight(true);
     try {
       await progressAPI.addWeight(Number(newWeight));
       setNewWeight('');
       setIsAddingWeight(false);
-      // Refresh only weight history
-      const res = await progressAPI.getWeightHistory(30);
+      const res = await progressAPI.getWeightHistory(365);
       setWeightHistory(res.data.data);
+      const pr = await authAPI.getProfile();
+      setProfileUser(pr.data.data as User);
     } catch (err) {
-      console.error("Failed to add weight", err);
+      console.error('Failed to add weight', err);
     } finally {
       setIsSubmittingWeight(false);
     }
   };
 
-  // ── Compute Chart SVG Path ───────────────────────────────────────
-  const chartData = [...weightHistory].reverse(); // oldest to newest
-  const hasWeightData = chartData.length > 0;
-  
+  const chartWeights = useMemo(
+    () => filterWeightsByRange(weightHistory, range),
+    [weightHistory, range]
+  );
+
+  const hasWeightData = chartWeights.length > 0;
+
   let polylinePoints = '';
-  // Default bounds
   let minWeigth = 0;
   let maxWeight = 100;
-  
+
   if (hasWeightData) {
-    const weights = chartData.map(e => e.weight);
+    const weights = chartWeights.map((e) => e.weight);
     minWeigth = Math.min(...weights) - 5;
     maxWeight = Math.max(...weights) + 5;
-    const range = maxWeight - minWeigth;
-    
-    polylinePoints = chartData.map((entry, index) => {
-      // x from 0 to 800
-      const x = chartData.length === 1 ? 400 : (index / (chartData.length - 1)) * 800;
-      // y from 0 to 150 (inverted, 0 is top)
-      const y = 150 - ((entry.weight - minWeigth) / range) * 150;
-      return `${x},${y}`;
-    }).join(' ');
+    const rangeW = maxWeight - minWeigth;
+    polylinePoints = chartWeights
+      .map((entry, index) => {
+        const x =
+          chartWeights.length === 1 ? 400 : (index / (chartWeights.length - 1)) * 800;
+        const y = 150 - ((entry.weight - minWeigth) / rangeW) * 150;
+        return `${x},${y}`;
+      })
+      .join(' ');
   }
+
+  const activityChart = stats?.weeklyChart ?? [];
+  const chartMaxCal = Math.max(...activityChart.map((d) => d.caloriesBurned), 1);
+
+  const filterClass =
+    'px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] border transition-all';
 
   return (
     <div className="min-h-screen bg-background">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-      
+
       <main className="lg:ml-64 pt-20">
         <div className="p-6 md:p-12 max-w-7xl mx-auto space-y-12">
-          
-          {/* Header */}
           <section className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h2 className="font-headline text-4xl md:text-6xl font-black italic tracking-tighter text-on-surface leading-none uppercase">Performance Metrics</h2>
-              <p className="mt-6 text-on-surface-variant max-w-md font-light leading-relaxed">
-                Your biological data mapped over time. Analyzing trends in strength, endurance, and systemic recovery.
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <h2 className="font-headline text-4xl md:text-6xl font-black italic tracking-tighter text-on-surface leading-none uppercase">
+                Progress
+              </h2>
+              <p className="mt-6 text-on-surface-variant max-w-lg font-light leading-relaxed">
+                Weight, workouts, and calories from your logged sessions and meals. Pick a range to
+                update charts.
               </p>
             </motion.div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <button 
+              <button
+                type="button"
                 onClick={() => setIsAddingWeight(true)}
                 className="px-8 py-4 bg-primary text-on-primary font-black text-[10px] tracking-[0.3em] uppercase hover:brightness-110 transition-all shadow-lg flex items-center justify-center gap-2"
               >
-                <Plus className="w-4 h-4" /> Log Weight
+                <Plus className="w-4 h-4" /> Log weight
               </button>
             </div>
           </section>
 
-          {/* Add Weight Modal */}
-          <Modal title="Log Weight Entry" isOpen={isAddingWeight} onClose={() => setIsAddingWeight(false)}>
+          <div className="flex flex-wrap gap-2">
+            {(['week', 'month', 'year'] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRange(r)}
+                className={cn(
+                  filterClass,
+                  range === r
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-outline text-on-surface-variant hover:border-primary/50'
+                )}
+              >
+                {r === 'week' ? 'Weekly' : r === 'month' ? 'Monthly' : 'Yearly'}
+              </button>
+            ))}
+          </div>
+
+          <Modal title="Log weight entry" isOpen={isAddingWeight} onClose={() => setIsAddingWeight(false)}>
             <form onSubmit={handleAddWeight} className="space-y-6">
               <div>
                 <label className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-2 block">
-                  Body Weight
+                  Body weight
                 </label>
                 <div className="relative">
                   <input
@@ -197,7 +261,9 @@ export default function Progress() {
                     placeholder="e.g. 75.5"
                     className="w-full bg-surface border border-outline p-4 font-headline text-2xl font-bold text-on-surface focus:border-primary focus:outline-none transition-colors"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">kg</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">
+                    kg
+                  </span>
                 </div>
               </div>
               <button
@@ -205,51 +271,88 @@ export default function Progress() {
                 disabled={isSubmittingWeight}
                 className="w-full bg-primary text-on-primary p-4 font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50"
               >
-                {isSubmittingWeight ? "Saving..." : "Save Entry"}
+                {isSubmittingWeight ? 'Saving...' : 'Save entry'}
               </button>
             </form>
           </Modal>
 
-          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <QuickStat 
-              label="Total Workouts" 
-              value={loading ? "—" : `${stats?.totalWorkouts || 0}`} 
-              icon={Dumbbell} 
-              trend={"+"} 
+            <QuickStat
+              label="Total workouts"
+              value={loading ? '—' : `${stats?.totalWorkouts ?? 0}`}
+              icon={Dumbbell}
             />
-            <QuickStat 
-              label="Avg. Duration" 
-              value={loading ? "—" : `${stats?.avgDuration || 0}m`} 
-              icon={Clock} 
-              trend={"+"} 
+            <QuickStat
+              label="Avg. duration"
+              value={loading ? '—' : `${stats?.avgDuration ?? 0}m`}
+              icon={Clock}
             />
-            <QuickStat 
-              label="Total Calories" 
-              value={loading ? "—" : `${((stats?.totalCalories || 0)/1000).toFixed(1)}k`} 
-              icon={Flame} 
-              trend={"+"} 
+            <QuickStat
+              label="Calories burned (all time)"
+              value={
+                loading
+                  ? '—'
+                  : `${((stats?.totalCalories ?? 0) / 1000).toFixed(1)}k`
+              }
+              icon={Flame}
             />
           </div>
 
-          {/* Charts Section */}
-          <div className="grid grid-cols-12 gap-8">
-            
-            {/* Weight Chart */}
-            <div className="col-span-12 lg:col-span-8 bg-surface-container p-10 border border-outline relative overflow-hidden">
-              <div className="flex justify-between items-start mb-12">
+          {(profileUser?.fitnessGoal || profileUser?.weight) && (
+            <div className="bg-surface-container border border-outline p-6 md:p-8">
+              <h3 className="font-headline text-lg font-black uppercase italic tracking-tight mb-4">
+                Goals &amp; body
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
                 <div>
-                  <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2">Weight Progress</h4>
-                  <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">Last 30 Entries</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-1">
+                    Fitness goal
+                  </p>
+                  <p className="text-on-surface font-medium">
+                    {profileUser?.fitnessGoal || '—'}
+                  </p>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Weight</span>
-                  </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-1">
+                    Current weight (profile)
+                  </p>
+                  <p className="text-on-surface font-medium">
+                    {profileUser?.weight != null
+                      ? `${profileUser.weight} kg`
+                      : 'Not set — update in Profile'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-on-surface-variant mb-1">
+                    Activity
+                  </p>
+                  <p className="text-on-surface font-medium">
+                    {profileUser?.activityLevel || '—'}
+                  </p>
                 </div>
               </div>
-              
+              <Link
+                to="/profile"
+                className="inline-block mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-primary hover:underline"
+              >
+                Edit profile
+              </Link>
+            </div>
+          )}
+
+          <div className="grid grid-cols-12 gap-8">
+            <div className="col-span-12 lg:col-span-8 bg-surface-container p-10 border border-outline relative overflow-hidden">
+              <div className="flex justify-between items-start mb-8 flex-wrap gap-4">
+                <div>
+                  <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2">
+                    Weight
+                  </h4>
+                  <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">
+                    {rangeLabel[range]} · from your log
+                  </p>
+                </div>
+              </div>
+
               <div className="h-64 flex flex-col justify-end relative">
                 {loading ? (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -257,148 +360,276 @@ export default function Progress() {
                   </div>
                 ) : hasWeightData ? (
                   <>
-                    <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 800 150">
-                      <motion.polyline 
+                    <svg
+                      className="absolute inset-0 w-full h-full overflow-visible"
+                      preserveAspectRatio="none"
+                      viewBox="0 0 800 150"
+                    >
+                      <motion.polyline
                         initial={{ pathLength: 0 }}
                         animate={{ pathLength: 1 }}
-                        transition={{ duration: 1.5, ease: "easeInOut" }}
+                        transition={{ duration: 1.5, ease: 'easeInOut' }}
                         points={polylinePoints}
-                        fill="none" 
-                        stroke="#FF3B3B" 
+                        fill="none"
+                        stroke="currentColor"
+                        className="text-primary"
                         strokeWidth="3"
                         strokeLinejoin="round"
                         strokeLinecap="round"
                       />
-                      {/* Points */}
-                      {chartData.map((entry, index) => {
-                        const x = chartData.length === 1 ? 400 : (index / (chartData.length - 1)) * 800;
-                        const y = 150 - ((entry.weight - minWeigth) / (maxWeight - minWeigth)) * 150;
+                      {chartWeights.map((entry, index) => {
+                        const x =
+                          chartWeights.length === 1
+                            ? 400
+                            : (index / (chartWeights.length - 1)) * 800;
+                        const y =
+                          150 -
+                          ((entry.weight - minWeigth) / (maxWeight - minWeigth)) * 150;
                         return (
                           <motion.circle
                             key={entry._id}
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 1 + (index * 0.05) }}
+                            transition={{ delay: 1 + index * 0.05 }}
                             cx={x}
                             cy={y}
                             r="4"
-                            fill="#1A1A1A"
-                            stroke="#FF3B3B"
+                            fill="currentColor"
+                            className="text-background"
+                            stroke="currentColor"
                             strokeWidth="2"
-                            className="hover:scale-150 transition-transform cursor-pointer"
                           >
-                            <title>{entry.weight} {entry.unit} - {formatDateShort(entry.date)}</title>
+                            <title>
+                              {entry.weight} {entry.unit} — {formatDateShort(entry.date)}
+                            </title>
                           </motion.circle>
-                        )
+                        );
                       })}
                     </svg>
-                    {/* Grid Lines */}
                     <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
-                      {[1, 2, 3, 4, 5].map(i => <div key={i} className="w-full h-px bg-on-surface"></div>)}
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="w-full h-px bg-on-surface" />
+                      ))}
                     </div>
                   </>
                 ) : (
                   <div className="absolute inset-0 flex flex-col items-center justify-center border-2 border-dashed border-outline/50 bg-surface-low/30">
                     <Scale className="w-10 h-10 text-on-surface-variant/30 mb-3" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-4">No weight data available</p>
-                    <button 
+                    <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-4 text-center px-4">
+                      No weight entries in this range
+                    </p>
+                    <button
+                      type="button"
                       onClick={() => setIsAddingWeight(true)}
                       className="px-6 py-2 bg-surface border border-outline text-on-surface text-[9px] font-black uppercase tracking-widest hover:border-primary transition-colors"
                     >
-                      Log first entry
+                      Log weight
                     </button>
                   </div>
                 )}
               </div>
-              
+
               {hasWeightData && (
-                <div className="flex justify-between mt-6 px-2 overflow-x-auto no-scrollbar gap-4">
-                  {chartData.filter((_, i) => i % Math.max(1, Math.floor(chartData.length / 5)) === 0).map(entry => (
-                    <span key={entry._id} className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant whitespace-nowrap">
-                      {formatDateShort(entry.date)}
-                    </span>
-                  ))}
+                <div className="flex justify-between mt-6 px-2 overflow-x-auto gap-4 no-scrollbar">
+                  {chartWeights
+                    .filter(
+                      (_, i) =>
+                        i % Math.max(1, Math.floor(chartWeights.length / 6)) === 0
+                    )
+                    .map((entry) => (
+                      <span
+                        key={entry._id}
+                        className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant whitespace-nowrap"
+                      >
+                        {formatDateShort(entry.date)}
+                      </span>
+                    ))}
                 </div>
               )}
             </div>
 
-            {/* Consistency Card */}
             <div className="col-span-12 lg:col-span-4 bg-surface-container p-10 border border-outline flex flex-col justify-between">
               <div>
-                <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2">Consistency</h4>
-                <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">7-Day Frequency</p>
+                <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2">
+                  Workout consistency
+                </h4>
+                <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">
+                  {rangeLabel[range]}
+                </p>
               </div>
-              
-              <div className="flex flex-col gap-4 mt-10">
-                <div className="flex items-end gap-2 h-32">
-                  {loading ? (
-                    Array.from({length: 7}).map((_, i) => (
-                       <div key={i} className="flex-1 rounded-sm bg-surface-highest animate-pulse h-1/2" />
-                    ))
-                  ) : (
-                    stats?.weeklyChart?.map((day, i) => (
-                      <motion.div 
+
+              <div className="flex flex-col gap-4 mt-8">
+                <div
+                  className={cn(
+                    'flex items-end gap-1 h-32 overflow-x-auto pb-1',
+                    activityChart.length > 14 && 'min-w-0'
+                  )}
+                >
+                  {loading || statsLoading ? (
+                    Array.from({ length: 7 }).map((_, i) => (
+                      <div
                         key={i}
-                        initial={{ height: 0 }}
-                        animate={{ height: day.hasSession ? '100%' : '15%' }}
-                        transition={{ delay: i * 0.1 }}
-                        className={cn("flex-1 rounded-sm", day.hasSession ? "bg-primary" : "bg-surface-highest")}
+                        className="flex-1 min-w-[8px] rounded-sm bg-surface-highest animate-pulse h-1/2"
                       />
                     ))
+                  ) : activityChart.length > 0 ? (
+                    activityChart.map((day, i) => (
+                      <motion.div
+                        key={`${day.day}-${i}`}
+                        initial={{ height: 0 }}
+                        animate={{ height: day.hasSession ? '100%' : '18%' }}
+                        transition={{ delay: i * 0.02 }}
+                        title={`${day.day}: ${day.caloriesBurned} kcal`}
+                        className={cn(
+                          'flex-1 min-w-[6px] max-w-[40px] rounded-sm',
+                          day.hasSession ? 'bg-primary' : 'bg-surface-highest'
+                        )}
+                      />
+                    ))
+                  ) : (
+                    <div className="w-full text-center text-[10px] text-on-surface-variant py-8">
+                      No activity in this range
+                    </div>
                   )}
                 </div>
-                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-on-surface-variant">
-                  {stats?.weeklyChart?.map((d, i) => (
-                    <span key={i}>{d.day.charAt(0)}</span>
-                  )) || <span>M</span>}
+                <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-on-surface-variant gap-1 overflow-x-auto">
+                  {activityChart.map((d, i) => (
+                    <span key={i} className="truncate max-w-[3rem]">
+                      {d.day}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="mt-10 p-6 bg-surface-low border border-outline/50">
+              <div className="mt-8 p-6 bg-surface-low border border-outline/50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                     <Award className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Milestone</p>
-                    <p className="text-sm font-bold text-on-surface">{stats?.streak || 0} Day Streak</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
+                      Streak
+                    </p>
+                    <p className="text-sm font-bold text-on-surface">
+                      {stats?.streak ?? 0} day{stats?.streak !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Recent Sessions List */}
+          <div className="bg-surface-container p-10 border border-outline">
+            <div className="flex justify-between items-start mb-8 flex-wrap gap-4">
+              <div>
+                <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2 flex items-center gap-2">
+                  <TrendingUp className="w-6 h-6 text-primary" />
+                  Calories burned
+                </h4>
+                <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">
+                  {rangeLabel[range]} · from workout sessions
+                </p>
+              </div>
+              <p className="font-headline text-3xl font-black text-on-surface">
+                {(stats?.weeklyCalories ?? 0).toLocaleString()}{' '}
+                <span className="text-sm font-normal text-on-surface-variant italic">kcal</span>
+              </p>
+            </div>
+            <div className="h-48 flex items-end justify-between gap-1 overflow-x-auto">
+              {loading || statsLoading ? (
+                Array.from({ length: 7 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 min-w-[8px] bg-surface-highest animate-pulse rounded-sm"
+                    style={{ height: '40%' }}
+                  />
+                ))
+              ) : activityChart.length > 0 ? (
+                activityChart.map((day, i) => {
+                  const h =
+                    chartMaxCal > 0
+                      ? Math.max((day.caloriesBurned / chartMaxCal) * 100, day.hasSession ? 10 : 4)
+                      : 0;
+                  return (
+                    <div
+                      key={`cal-${i}`}
+                      className={cn(
+                        'flex-1 min-w-[6px] max-w-[48px] rounded-sm transition-all',
+                        day.caloriesBurned > 0 ? 'bg-primary/90' : 'bg-surface-highest'
+                      )}
+                      style={{ height: `${h}%` }}
+                      title={`${day.day}: ${day.caloriesBurned} kcal`}
+                    />
+                  );
+                })
+              ) : (
+                <div className="w-full flex flex-col items-center justify-center py-12 text-on-surface-variant text-sm">
+                  Log workouts to see calories burned over time.
+                </div>
+              )}
+            </div>
+          </div>
+
           <section>
-            <h3 className="font-headline text-3xl font-black uppercase italic tracking-tighter mb-8">Recent Sessions</h3>
+            <h3 className="font-headline text-3xl font-black uppercase italic tracking-tighter mb-8">
+              Recent sessions
+            </h3>
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {Array.from({length: 4}).map((_, i) => (
-                  <div key={i} className="bg-surface-container p-6 h-32 animate-pulse border border-outline"></div>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-surface-container p-6 h-32 animate-pulse border border-outline"
+                  />
                 ))}
               </div>
             ) : sessions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {sessions.map(session => (
-                   <div key={session._id} className="bg-surface-container p-6 border border-outline hover:bg-surface-bright transition-all cursor-pointer group">
-                     <p className="text-[9px] text-primary font-black uppercase tracking-[0.3em] mb-2">{formatDate(session.createdAt)}</p>
-                     <h5 className="font-headline text-lg font-black uppercase italic tracking-tight mb-6 leading-tight group-hover:text-primary transition-colors truncate" title={session.title}>{session.title}</h5>
-                     <div className="flex justify-between items-center">
-                       <div className="flex gap-4">
-                         <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-1"><Clock className="w-3 h-3"/> {session.duration}m</span>
-                         <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-1"><Flame className="w-3 h-3"/> {session.caloriesBurned}</span>
-                       </div>
-                       <ChevronRight className="w-4 h-4 text-outline group-hover:text-primary transition-all" />
-                     </div>
-                   </div>
+                {sessions.map((session) => (
+                  <Link
+                    key={session._id}
+                    to="/workouts"
+                    className="bg-surface-container p-6 border border-outline hover:bg-surface-bright transition-all group"
+                  >
+                    <p className="text-[9px] text-primary font-black uppercase tracking-[0.3em] mb-2">
+                      {formatDate(session.createdAt)}
+                    </p>
+                    <h5
+                      className="font-headline text-lg font-black uppercase italic tracking-tight mb-6 leading-tight group-hover:text-primary transition-colors truncate"
+                      title={session.title}
+                    >
+                      {session.title}
+                    </h5>
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-4">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {session.duration}m
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant flex items-center gap-1">
+                          <Flame className="w-3 h-3" /> {session.caloriesBurned}
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-outline group-hover:text-primary transition-all" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             ) : (
-               <div className="bg-surface-container border border-dashed border-outline p-12 flex flex-col items-center justify-center text-center">
-                 <Dumbbell className="w-12 h-12 text-on-surface-variant/30 mb-4" />
-                 <h4 className="font-headline text-xl font-black uppercase italic tracking-tight">No recorded sessions</h4>
-                 <p className="text-sm text-on-surface-variant mt-2 font-light">Complete your first workout to start tracking your performance history.</p>
-               </div>
+              <div className="bg-surface-container border border-dashed border-outline p-12 flex flex-col items-center justify-center text-center">
+                <Dumbbell className="w-12 h-12 text-on-surface-variant/30 mb-4" />
+                <h4 className="font-headline text-xl font-black uppercase italic tracking-tight">
+                  No sessions yet
+                </h4>
+                <p className="text-sm text-on-surface-variant mt-2 font-light max-w-md">
+                  Start a workout from the Workouts page to build your history.
+                </p>
+                <Link
+                  to="/workouts"
+                  className="mt-6 px-8 py-3 bg-primary text-on-primary text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110"
+                >
+                  Browse workouts
+                </Link>
+              </div>
             )}
           </section>
         </div>

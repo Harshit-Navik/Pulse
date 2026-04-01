@@ -142,11 +142,17 @@ export const getSessions = asyncHandler(async (req, res) => {
 
 /**
  * GET /api/progress/stats
- * Returns aggregated stats + 7-day chart + streak + active days.
+ * Query: range=week | month | year
+ * Returns aggregated stats + activity chart + streak.
  */
 export const getProgressStats = asyncHandler(async (req, res) => {
+  const range = req.query.range || "week";
   const userId = new mongoose.Types.ObjectId(req.user._id);
   const today = new Date();
+
+  if (!["week", "month", "year"].includes(range)) {
+    throw new ApiError(400, "range must be week, month, or year");
+  }
 
   // ── All-time aggregates ────────────────────────────────────────
   const overallResult = await WorkoutSession.aggregate([
@@ -170,53 +176,110 @@ export const getProgressStats = asyncHandler(async (req, res) => {
   };
   overall.avgDuration = Math.round(overall.avgDuration || 0);
 
-  // ── Last 7-day chart ───────────────────────────────────────────
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
 
-  const weekSessions = await WorkoutSession.find({
-    user: userId,
-    createdAt: { $gte: sevenDaysAgo },
-  }).select("caloriesBurned duration createdAt completedAt");
+  let weeklyChart = [];
+  let periodSessions;
 
-  // Build per-day buckets
-  const dayLabels = lastNDayLabels(7);
-  const weeklyChart = dayLabels.map((day, idx) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (6 - idx));
-    const dayStr = d.toDateString();
+  if (range === "year") {
+    const yearStart = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+    yearStart.setHours(0, 0, 0, 0);
 
-    const daySessions = weekSessions.filter((s) => {
-      return startOf(s.completedAt || s.createdAt).toDateString() === dayStr;
-    });
+    periodSessions = await WorkoutSession.find({
+      user: userId,
+      createdAt: { $gte: yearStart },
+    }).select("caloriesBurned duration createdAt completedAt");
 
-    return {
-      day,
-      caloriesBurned: daySessions.reduce((sum, s) => sum + (s.caloriesBurned || 0), 0),
-      duration: daySessions.reduce((sum, s) => sum + (s.duration || 0), 0),
-      hasSession: daySessions.length > 0,
-    };
-  });
+    for (let i = 0; i < 12; i++) {
+      const monthStart = new Date(today.getFullYear(), today.getMonth() - (11 - i), 1);
+      const monthEnd = new Date(
+        monthStart.getFullYear(),
+        monthStart.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999
+      );
+      const daySessions = periodSessions.filter((s) => {
+        const t = s.completedAt || s.createdAt;
+        return t >= monthStart && t <= monthEnd;
+      });
+      weeklyChart.push({
+        day: monthNames[monthStart.getMonth()],
+        caloriesBurned: daySessions.reduce(
+          (sum, s) => sum + (s.caloriesBurned || 0),
+          0
+        ),
+        duration: daySessions.reduce((sum, s) => sum + (s.duration || 0), 0),
+        hasSession: daySessions.length > 0,
+      });
+    }
+  } else {
+    const days = range === "month" ? 30 : 7;
+    const start = new Date(today);
+    start.setDate(today.getDate() - (days - 1));
+    start.setHours(0, 0, 0, 0);
 
-  // ── Weekly calories & active days ─────────────────────────────
+    periodSessions = await WorkoutSession.find({
+      user: userId,
+      createdAt: { $gte: start },
+    }).select("caloriesBurned duration createdAt completedAt");
+
+    const dayLabels = range === "week" ? lastNDayLabels(7) : null;
+
+    for (let idx = 0; idx < days; idx++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + idx);
+      const dayStr = d.toDateString();
+
+      const daySessions = periodSessions.filter((s) => {
+        return startOf(s.completedAt || s.createdAt).toDateString() === dayStr;
+      });
+
+      let label;
+      if (range === "week") {
+        label = dayLabels[idx];
+      } else {
+        label = `${monthNames[d.getMonth()]} ${d.getDate()}`;
+      }
+
+      weeklyChart.push({
+        day: label,
+        caloriesBurned: daySessions.reduce(
+          (sum, s) => sum + (s.caloriesBurned || 0),
+          0
+        ),
+        duration: daySessions.reduce((sum, s) => sum + (s.duration || 0), 0),
+        hasSession: daySessions.length > 0,
+      });
+    }
+  }
+
   const weeklyCalories = weeklyChart.reduce((sum, d) => sum + d.caloriesBurned, 0);
   const activeDaysThisWeek = weeklyChart.filter((d) => d.hasSession).length;
 
-  // ── Streak ────────────────────────────────────────────────────
   const allSessions = await WorkoutSession.find({ user: userId })
     .select("completedAt createdAt")
     .sort({ createdAt: -1 });
   const streak = computeStreak(allSessions);
 
   return res.status(200).json(
-    new ApiResponse(200, {
-      ...overall,
-      weeklyChart,
-      weeklyCalories,
-      activeDaysThisWeek,
-      streak,
-    }, "Progress stats fetched")
+    new ApiResponse(
+      200,
+      {
+        ...overall,
+        weeklyChart,
+        weeklyCalories,
+        activeDaysThisWeek,
+        streak,
+        range,
+      },
+      "Progress stats fetched"
+    )
   );
 });
 
