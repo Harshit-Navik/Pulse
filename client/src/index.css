@@ -21,8 +21,20 @@
 }
 
 @layer base {
+  /* Contain horizontal overflow from full-bleed sections without clipping vertical overflow */
+  #root {
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
   body {
     @apply bg-background text-on-background font-body antialiased;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
   }
 
   /* Ensure Inter propagates to all form controls and elements that browsers reset */

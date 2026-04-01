@@ -148,7 +148,7 @@ export default function Dashboard() {
   const fitnessGoal = data?.user?.fitnessGoal || null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -274,14 +274,14 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="col-span-12 lg:col-span-8 bg-surface-container p-8 flex flex-col justify-between border-t border-primary/30 relative overflow-hidden group"
+              className="col-span-12 lg:col-span-8 bg-surface-container p-5 sm:p-8 flex flex-col justify-between border-t border-primary/30 relative overflow-hidden group min-w-0"
             >
-              <div className="flex justify-between items-start relative z-10">
-                <div>
+              <div className="flex justify-between items-start gap-4 relative z-10 min-w-0">
+                <div className="min-w-0">
                   <span className="text-[10px] uppercase tracking-[0.3em] font-black text-primary mb-2 block">
                     Weekly Calories Burned
                   </span>
-                  <h4 className="font-headline text-4xl font-extrabold text-on-surface tracking-tight">
+                  <h4 className="font-headline text-2xl sm:text-4xl font-extrabold text-on-surface tracking-tight break-words">
                     {loading ? (
                       <SkeletonText w="w-32" h="h-9" />
                     ) : (
@@ -292,10 +292,10 @@ export default function Dashboard() {
                     )}
                   </h4>
                 </div>
-                <TrendingUp className="text-primary w-8 h-8" />
+                <TrendingUp className="text-primary w-8 h-8 shrink-0" />
               </div>
 
-              <div className="mt-12 h-48 flex items-end justify-between gap-3">
+              <div className="mt-12 h-48 flex items-end justify-between gap-1 sm:gap-3 min-w-0 overflow-x-auto pb-1 no-scrollbar">
                 {loading ? (
                   Array.from({ length: 7 }).map((_, i) => <SkeletonBar key={i} />)
                 ) : data?.weeklyChart && data.weeklyChart.length > 0 ? (
@@ -308,7 +308,7 @@ export default function Dashboard() {
                       <div
                         key={i}
                         className={cn(
-                          'flex-1 relative group/bar transition-all duration-500 cursor-default',
+                          'flex-1 min-w-[1.25rem] sm:min-w-0 relative group/bar transition-all duration-500 cursor-default',
                           isToday && day.hasSession ? 'bg-primary' : day.hasSession ? 'bg-surface-bright border border-primary/30' : 'bg-surface-highest'
                         )}
                         style={{ height: `${heightPct}%`, minHeight: day.hasSession ? '8%' : '4%' }}
@@ -340,12 +340,12 @@ export default function Dashboard() {
 
               {/* Day labels */}
               {!loading && data?.weeklyChart && (
-                <div className="flex justify-between mt-3 px-0 gap-3">
+                <div className="flex justify-between mt-3 px-0 gap-1 sm:gap-3 min-w-0 overflow-x-auto no-scrollbar">
                   {data.weeklyChart.map((d, i) => (
                     <span
                       key={i}
                       className={cn(
-                        'flex-1 text-center text-[9px] font-black uppercase tracking-wider',
+                        'flex-1 min-w-[1.5rem] text-center text-[8px] sm:text-[9px] font-black uppercase tracking-wider',
                         i === data.weeklyChart.length - 1 ? 'text-primary' : 'text-on-surface-variant/50'
                       )}
                     >

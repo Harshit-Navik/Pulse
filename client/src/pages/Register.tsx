@@ -43,7 +43,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden min-w-0">
       {/* Left Side - Brand/Image */}
       <div className="hidden md:flex md:w-1/2 bg-surface-low relative items-center justify-center p-24 overflow-hidden">
         <div className="absolute inset-0 kinetic-grid opacity-30"></div>
@@ -78,7 +78,7 @@ export default function Register() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-8 md:p-24 relative">
+      <div className="w-full md:w-1/2 flex items-center justify-center p-5 sm:p-8 md:p-24 relative min-w-0">
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -86,7 +86,7 @@ export default function Register() {
           className="w-full max-w-md space-y-12"
         >
           <div className="space-y-4">
-            <h2 className="font-headline text-4xl font-black uppercase italic tracking-tighter text-on-surface">Create Account</h2>
+            <h2 className="font-headline text-3xl sm:text-4xl font-black uppercase italic tracking-tighter text-on-surface">Create Account</h2>
             <p className="text-on-surface-variant text-sm font-light">Join the Monolith. Begin your performance ritual.</p>
           </div>
 

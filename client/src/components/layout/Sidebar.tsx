@@ -43,10 +43,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <aside className={cn(
-        "fixed left-0 top-0 h-screen w-64 bg-surface-low flex flex-col py-8 border-r border-outline z-[60] transition-transform duration-300 ease-in-out",
-        // On mobile: hidden by default, slide in when isOpen
+        "fixed left-0 top-0 h-screen w-64 bg-surface-low flex flex-col py-8 border-r border-outline z-[60] transition-transform duration-300 ease-in-out touch-manipulation",
+        // Desktop always visible; mobile drawer uses max-lg only so overrides never fight
         "lg:translate-x-0",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        isOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
       )}>
         <div className="mb-12 px-8 flex items-center justify-between">
           <Link to="/" className="block">
@@ -55,8 +55,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </Link>
           {/* Close button for mobile */}
           <button 
+            type="button"
             onClick={onClose}
-            className="lg:hidden p-2 text-on-surface-variant hover:text-on-surface transition-colors"
+            className="lg:hidden inline-flex items-center justify-center min-h-11 min-w-11 p-2 text-on-surface-variant hover:text-on-surface transition-colors touch-manipulation rounded-sm shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -71,7 +72,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 to={item.path}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center gap-4 px-8 py-4 transition-all duration-300 group relative",
+                  "flex items-center gap-4 px-8 py-4 min-h-11 transition-all duration-300 group relative",
                   isActive 
                     ? "text-primary border-r-4 border-primary bg-gradient-to-r from-primary/10 to-transparent" 
                     : "text-on-surface-variant hover:text-on-surface hover:bg-surface-highest/50"

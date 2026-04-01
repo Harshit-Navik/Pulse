@@ -30,15 +30,15 @@ const faqData = [
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-background selection:bg-primary selection:text-on-primary">
+    <div className="min-h-screen bg-background selection:bg-primary selection:text-on-primary min-w-0 overflow-x-clip">
       <LandingNavbar />
 
       <main>
         {/* Hero Section */}
-        <section className="relative isolate min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <section className="relative isolate min-h-[100dvh] min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-20">
           <div className="absolute inset-0 kinetic-grid pointer-events-none opacity-50"></div>
 
-          <div className="container mx-auto px-8 md:px-24 z-10 flex flex-col items-center text-center">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 z-10 flex flex-col items-center text-center max-w-full">
             <motion.span
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ export default function Landing() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="font-headline text-5xl md:text-8xl font-extrabold tracking-tighter text-on-background leading-[0.9] mb-8 max-w-5xl uppercase"
+              className="font-headline text-4xl sm:text-5xl md:text-8xl font-extrabold tracking-tighter text-on-background leading-[0.9] mb-8 max-w-5xl uppercase px-1"
             >
               Performance is a <span className="italic">ritual.</span>
             </motion.h1>
@@ -61,7 +61,7 @@ export default function Landing() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-on-surface-variant max-w-xl text-lg md:text-xl font-light leading-relaxed mb-12"
+              className="text-on-surface-variant max-w-xl text-base sm:text-lg md:text-xl font-light leading-relaxed mb-12 px-1"
             >
               Access elite data-driven wellness tailored for the high-performance lifestyle. Precision tracking meets disciplined execution.
             </motion.p>
@@ -70,12 +70,12 @@ export default function Landing() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="flex flex-col sm:flex-row gap-4 w-full max-w-md sm:max-w-none justify-center items-stretch sm:items-center"
             >
-              <Link to="/login" className="bg-primary text-on-primary px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20">
+              <Link to="/login" className="bg-primary text-on-primary px-8 sm:px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20 text-center">
                 JOIN THE MONOLITH
               </Link>
-              <a href="#products" className="border border-outline text-on-surface px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:bg-surface-container transition-all active:scale-95">
+              <a href="#pricing" className="border border-outline text-on-surface px-8 sm:px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:bg-surface-container transition-all active:scale-95 text-center">
                 VIEW PROTOCOLS
               </a>
             </motion.div>
@@ -94,8 +94,8 @@ export default function Landing() {
         </section>
 
         {/* Features Grid */}
-        <section id="features" className="py-32 md:py-48 bg-background relative border-y border-outline/30">
-          <div className="container mx-auto px-8 md:px-24">
+        <section id="features" className="py-20 sm:py-32 md:py-48 bg-background relative border-y border-outline/30 scroll-mt-24">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-outline/30 border border-outline/30">
               <FeatureCard
                 index="01"
@@ -130,8 +130,8 @@ export default function Landing() {
         </section>
 
         {/* Products Section */}
-        <section id="pricing" className="py-32 md:py-48">
-          <div className="container mx-auto px-8 md:px-24">
+        <section id="pricing" className="py-20 sm:py-32 md:py-48 scroll-mt-24">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
             <div className="text-center mb-24">
               <span className="text-primary tracking-[0.5em] uppercase text-[10px] font-black">Our Pricing</span>
               <h2 className="font-headline text-4xl md:text-7xl font-extrabold tracking-tighter leading-[0.9] uppercase italic mt-6">
@@ -167,15 +167,15 @@ export default function Landing() {
         </section>
 
         {/* Philosophy Section */}
-        <section id="training" className="py-32 md:py-48">
-          <div className="container mx-auto px-8 md:px-24">
-            <div className="flex flex-col lg:flex-row items-center gap-24">
+        <section id="training" className="py-20 sm:py-32 md:py-48">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
+            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
               <div className="w-full lg:w-1/2">
                 <div className="relative group">
                   <img
                     src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&h=1000&fit=crop"
                     alt="Gym Discipline"
-                    className="w-full grayscale border border-outline shadow-2xl transition-all duration-700 group-hover:grayscale-0"
+                    className="w-full max-w-full h-auto grayscale border border-outline shadow-2xl transition-all duration-700 group-hover:grayscale-0"
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute -bottom-8 -right-8 w-40 h-40 bg-primary p-8 flex items-center justify-center border border-primary/20 hidden md:flex">
@@ -207,9 +207,9 @@ export default function Landing() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-32 bg-surface-container border-y border-outline">
-          <div className="container mx-auto px-8 md:px-24">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+        <section className="py-20 sm:py-32 bg-surface-container border-y border-outline">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-center">
               <StatItem value="10K" suffix="+" label="Elite Members" />
               <StatItem value="98" suffix="%" label="Performance Inc." />
               <StatItem value="24" suffix="/7" label="Biometric Hub" />
@@ -219,9 +219,9 @@ export default function Landing() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-32 md:py-48 relative overflow-hidden">
+        <section className="py-20 sm:py-32 md:py-48 relative overflow-hidden">
           <div className="absolute inset-0 kinetic-grid pointer-events-none opacity-30"></div>
-          <div className="container mx-auto px-8 md:px-24 relative z-10">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 relative z-10 max-w-full">
             <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
               <div className="w-full lg:w-1/2 space-y-10">
                 <span className="text-primary tracking-[0.5em] uppercase text-[10px] font-black">Start Today</span>
@@ -236,7 +236,7 @@ export default function Landing() {
                   <Link to="/register" className="bg-primary text-on-primary px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/20 text-center">
                     Get Started Free
                   </Link>
-                  <a href="#products" className="border border-outline text-on-surface px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:bg-surface-container transition-all active:scale-95 text-center">
+                  <a href="#pricing" className="border border-outline text-on-surface px-8 sm:px-12 py-5 font-black tracking-[0.2em] uppercase text-xs hover:bg-surface-container transition-all active:scale-95 text-center">
                     Explore Products
                   </a>
                 </div>
@@ -244,28 +244,28 @@ export default function Landing() {
 
               <div className="w-full lg:w-1/2">
                 <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-surface-container p-8 border border-outline">
+                  <div className="bg-surface-container p-5 sm:p-8 border border-outline min-w-0">
                     <div className="w-12 h-12 rounded-sm bg-primary/5 flex items-center justify-center mb-6">
                       <Shield className="text-primary w-6 h-6" />
                     </div>
                     <h4 className="font-headline text-lg font-bold tracking-tight uppercase italic text-on-surface mb-3">Secure Data</h4>
                     <p className="text-on-surface-variant font-light text-sm leading-relaxed">End-to-end encryption on all biometric and personal data.</p>
                   </div>
-                  <div className="bg-surface-container p-8 border border-outline">
+                  <div className="bg-surface-container p-5 sm:p-8 border border-outline min-w-0">
                     <div className="w-12 h-12 rounded-sm bg-primary/5 flex items-center justify-center mb-6">
                       <Activity className="text-primary w-6 h-6" />
                     </div>
                     <h4 className="font-headline text-lg font-bold tracking-tight uppercase italic text-on-surface mb-3">Live Sync</h4>
                     <p className="text-on-surface-variant font-light text-sm leading-relaxed">Real-time integration with all major wearable devices.</p>
                   </div>
-                  <div className="bg-surface-container p-8 border border-outline">
+                  <div className="bg-surface-container p-5 sm:p-8 border border-outline min-w-0">
                     <div className="w-12 h-12 rounded-sm bg-primary/5 flex items-center justify-center mb-6">
                       <Heart className="text-primary w-6 h-6" />
                     </div>
                     <h4 className="font-headline text-lg font-bold tracking-tight uppercase italic text-on-surface mb-3">Recovery AI</h4>
                     <p className="text-on-surface-variant font-light text-sm leading-relaxed">Intelligent recovery scheduling based on your HRV data.</p>
                   </div>
-                  <div className="bg-surface-container p-8 border border-outline">
+                  <div className="bg-surface-container p-5 sm:p-8 border border-outline min-w-0">
                     <div className="w-12 h-12 rounded-sm bg-primary/5 flex items-center justify-center mb-6">
                       <Dumbbell className="text-primary w-6 h-6" />
                     </div>
@@ -279,8 +279,8 @@ export default function Landing() {
         </section>
 
         {/* FAQs Section */}
-        <section id="faqs" className="py-32 md:py-48 bg-background border-y border-outline/30">
-          <div className="container mx-auto px-8 md:px-24">
+        <section id="faqs" className="py-20 sm:py-32 md:py-48 bg-background border-y border-outline/30 scroll-mt-24">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
             <div className="text-center mb-24">
               <span className="text-primary tracking-[0.5em] uppercase text-[10px] font-black">Knowledge Base</span>
               <h2 className="font-headline text-4xl md:text-7xl font-extrabold tracking-tighter leading-[0.9] uppercase italic mt-6">
@@ -298,9 +298,9 @@ export default function Landing() {
         </section>
 
         {/* Contact Us Section */}
-        <section id="contact" className="py-32 md:py-48">
-          <div className="container mx-auto px-8 md:px-24">
-            <div className="flex flex-col lg:flex-row gap-24">
+        <section id="contact" className="py-20 sm:py-32 md:py-48 scroll-mt-24">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
+            <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
               <div className="w-full lg:w-1/2 space-y-10">
                 <span className="text-primary tracking-[0.5em] uppercase text-[10px] font-black">Get In Touch</span>
                 <h2 className="font-headline text-4xl md:text-7xl font-extrabold tracking-tighter leading-[0.9] uppercase italic">
@@ -325,7 +325,7 @@ export default function Landing() {
               <div className="w-full lg:w-1/2">
                 <form
                   onSubmit={(e) => e.preventDefault()}
-                  className="bg-surface-container p-10 md:p-12 border border-outline space-y-8"
+                  className="bg-surface-container p-6 sm:p-10 md:p-12 border border-outline space-y-8 min-w-0"
                 >
                   <div className="space-y-2">
                     <label htmlFor="contact-name" className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.3em]">Full Name</label>
@@ -371,24 +371,24 @@ export default function Landing() {
         </section>
 
         {/* Final CTA */}
-        <section className="py-48 relative overflow-hidden">
+        <section className="py-24 sm:py-32 md:py-48 relative overflow-hidden">
           <div className="absolute inset-0 kinetic-grain pointer-events-none"></div>
-          <div className="container mx-auto px-8 md:px-24 text-center relative z-10">
-            <h2 className="font-headline text-5xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.8] uppercase italic">
+          <div className="container mx-auto px-4 sm:px-8 md:px-24 text-center relative z-10 max-w-full">
+            <h2 className="font-headline text-4xl sm:text-5xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.8] uppercase italic px-1">
               The journey <br />begins here.
             </h2>
             <p className="text-on-surface-variant max-w-2xl mx-auto text-lg mb-16 font-light">
               Acceptance into the Monolith is selective. Secure your spot in the next cohort of high-performance athletes.
             </p>
 
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-xl mx-auto w-full px-1">
               <form className="flex flex-col sm:flex-row gap-0 shadow-2xl">
                 <input
                   type="email"
                   placeholder="ENTER EMAIL"
-                  className="w-full bg-surface-container border border-outline sm:border-y sm:border-l sm:border-r-0 px-8 py-5 text-xs tracking-[0.3em] font-bold focus:ring-1 focus:ring-primary focus:outline-none text-on-surface placeholder:text-on-surface-variant/30"
+                  className="w-full min-w-0 bg-surface-container border border-outline sm:border-y sm:border-l sm:border-r-0 px-4 sm:px-8 py-5 text-xs tracking-[0.3em] font-bold focus:ring-1 focus:ring-primary focus:outline-none text-on-surface placeholder:text-on-surface-variant/30"
                 />
-                <button className="bg-primary text-on-primary px-12 py-5 font-black tracking-[0.3em] uppercase text-xs hover:brightness-110 transition-all whitespace-nowrap active:scale-95">
+                <button type="button" className="bg-primary text-on-primary px-8 sm:px-12 py-5 font-black tracking-[0.3em] uppercase text-xs hover:brightness-110 transition-all sm:whitespace-nowrap active:scale-95 min-h-11 touch-manipulation">
                   JOIN NOW
                 </button>
               </form>
@@ -421,8 +421,8 @@ function FeatureCard({ index, category, title, description, icon: Icon }: any) {
 
 function StatItem({ value, suffix, label }: any) {
   return (
-    <div className="space-y-3">
-      <div className="font-headline text-5xl md:text-7xl font-extrabold text-on-surface tracking-tighter uppercase italic">
+    <div className="space-y-3 min-w-0 px-1">
+      <div className="font-headline text-3xl sm:text-5xl md:text-7xl font-extrabold text-on-surface tracking-tighter uppercase italic break-words">
         {value}<span className="text-primary not-italic">{suffix}</span>
       </div>
       <div className="text-on-surface-variant text-[10px] uppercase tracking-[0.4em] font-black">{label}</div>
@@ -440,7 +440,7 @@ interface ProductCardProps {
 
 function ProductCard({ tier, price, description, features, highlighted }: ProductCardProps) {
   return (
-    <div className={`bg-surface p-12 flex flex-col justify-between border transition-all duration-500 group hover:bg-surface-bright ${highlighted ? 'border-primary/40 relative' : 'border-outline/30'}`}>
+    <div className={`bg-surface p-8 sm:p-12 flex flex-col justify-between border transition-all duration-500 group hover:bg-surface-bright min-w-0 ${highlighted ? 'border-primary/40 relative' : 'border-outline/30'}`}>
       {highlighted && (
         <div className="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
       )}
@@ -489,20 +489,21 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, index }) => {
   return (
     <div className="border border-outline/30 bg-surface transition-all duration-300 hover:bg-surface-bright">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-8 text-left"
+        className="w-full flex items-start sm:items-center justify-between gap-3 p-5 sm:p-8 text-left touch-manipulation min-h-11"
       >
-        <div className="flex items-center gap-6">
-          <span className="text-primary font-headline text-xl font-black italic flex-shrink-0">
+        <div className="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0 flex-1">
+          <span className="text-primary font-headline text-xl font-black italic flex-shrink-0 pt-0.5 sm:pt-0">
             {String(index + 1).padStart(2, '0')}
           </span>
-          <span className="font-headline text-sm md:text-base font-bold text-on-surface uppercase tracking-tight">{question}</span>
+          <span className="font-headline text-sm md:text-base font-bold text-on-surface uppercase tracking-tight text-left break-words">{question}</span>
         </div>
-        <ChevronDown className={`w-5 h-5 text-on-surface-variant flex-shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
+        <ChevronDown className={`w-5 h-5 text-on-surface-variant flex-shrink-0 ml-1 sm:ml-4 mt-0.5 sm:mt-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="px-8 pb-8 pl-20">
+        <div className="px-5 sm:px-8 pb-6 sm:pb-8 pl-14 sm:pl-20">
           <p className="text-on-surface-variant font-light leading-relaxed text-sm">{answer}</p>
         </div>
       )}

@@ -15,7 +15,7 @@ export function Footer({ variant = 'default', className }: FooterProps) {
     <footer
       className={cn(
         'w-full bg-surface-low border-t border-outline',
-        compact ? 'py-6 px-4 md:px-8' : 'py-16 px-12',
+        compact ? 'py-6 px-4 md:px-8' : 'py-16 px-4 sm:px-8 md:px-12',
         className
       )}
     >

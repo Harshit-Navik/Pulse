@@ -158,7 +158,7 @@ export default function Profile() {
   const stats = profile?.stats;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 

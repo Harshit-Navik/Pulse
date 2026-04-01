@@ -199,7 +199,7 @@ export default function Progress() {
     'px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] border transition-all';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -341,7 +341,7 @@ export default function Progress() {
           )}
 
           <div className="grid grid-cols-12 gap-8">
-            <div className="col-span-12 lg:col-span-8 bg-surface-container p-10 border border-outline relative overflow-hidden">
+            <div className="col-span-12 lg:col-span-8 bg-surface-container p-6 sm:p-10 border border-outline relative overflow-hidden min-w-0">
               <div className="flex justify-between items-start mb-8 flex-wrap gap-4">
                 <div>
                   <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2">
@@ -448,7 +448,7 @@ export default function Progress() {
               )}
             </div>
 
-            <div className="col-span-12 lg:col-span-4 bg-surface-container p-10 border border-outline flex flex-col justify-between">
+            <div className="col-span-12 lg:col-span-4 bg-surface-container p-6 sm:p-10 border border-outline flex flex-col justify-between min-w-0">
               <div>
                 <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2">
                   Workout consistency
@@ -519,18 +519,18 @@ export default function Progress() {
             </div>
           </div>
 
-          <div className="bg-surface-container p-10 border border-outline">
-            <div className="flex justify-between items-start mb-8 flex-wrap gap-4">
-              <div>
-                <h4 className="font-headline text-2xl font-black uppercase italic tracking-tight mb-2 flex items-center gap-2">
-                  <TrendingUp className="w-6 h-6 text-primary" />
+          <div className="bg-surface-container p-6 sm:p-10 border border-outline min-w-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-8 gap-4">
+              <div className="min-w-0">
+                <h4 className="font-headline text-xl sm:text-2xl font-black uppercase italic tracking-tight mb-2 flex flex-wrap items-center gap-2">
+                  <TrendingUp className="w-6 h-6 text-primary shrink-0" />
                   Calories burned
                 </h4>
                 <p className="text-[10px] text-on-surface-variant font-black uppercase tracking-[0.3em]">
                   {rangeLabel[range]} · from workout sessions
                 </p>
               </div>
-              <p className="font-headline text-3xl font-black text-on-surface">
+              <p className="font-headline text-2xl sm:text-3xl font-black text-on-surface shrink-0 tabular-nums">
                 {(stats?.weeklyCalories ?? 0).toLocaleString()}{' '}
                 <span className="text-sm font-normal text-on-surface-variant italic">kcal</span>
               </p>

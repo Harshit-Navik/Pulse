@@ -18,35 +18,36 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
   const formattedDate = today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
   return (
-    <header className="fixed top-0 right-0 w-full lg:w-[calc(100%-16rem)] h-20 bg-surface-low/60 backdrop-blur-xl flex items-center justify-between px-6 md:px-10 z-40 border-b border-outline/50">
-      <div className="flex items-center gap-4">
+    <header className="fixed top-0 right-0 w-full lg:w-[calc(100%-16rem)] h-20 bg-surface-low/60 backdrop-blur-xl flex items-center justify-between gap-3 px-4 sm:px-6 md:px-10 z-40 border-b border-outline/50 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
         {/* Hamburger for mobile */}
         <button 
+          type="button"
           onClick={onMenuToggle}
-          className="lg:hidden p-2 text-on-surface-variant hover:text-on-surface transition-colors mr-2"
+          className="lg:hidden inline-flex items-center justify-center min-h-11 min-w-11 shrink-0 text-on-surface-variant hover:text-on-surface transition-colors touch-manipulation rounded-sm -ml-1"
         >
           <Menu className="w-5 h-5" />
         </button>
-        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface font-headline">{formattedPath}</h2>
-        <span className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest hidden sm:inline">{formattedDate}</span>
+        <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface font-headline truncate min-w-0">{formattedPath}</h2>
+        <span className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest hidden sm:inline shrink-0">{formattedDate}</span>
       </div>
 
-      <div className="flex items-center gap-4 md:gap-8">
-        <div className="relative group hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant group-focus-within:text-primary transition-colors" />
+      <div className="flex items-center gap-2 sm:gap-4 md:gap-8 shrink-0">
+        <div className="relative group hidden md:block max-w-[min(16rem,28vw)]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant group-focus-within:text-primary transition-colors pointer-events-none" />
           <input 
             type="text" 
             placeholder="Search metrics..." 
-            className="bg-surface-container border-none rounded-sm pl-10 pr-4 py-2 text-xs w-64 focus:ring-1 focus:ring-primary/30 transition-all text-on-surface placeholder:text-on-surface-variant/50"
+            className="bg-surface-container border-none rounded-sm pl-10 pr-4 py-2 text-xs w-full max-w-64 focus:ring-1 focus:ring-primary/30 transition-all text-on-surface placeholder:text-on-surface-variant/50 min-w-0"
           />
         </div>
 
-        <button className="relative text-on-surface-variant hover:text-on-surface transition-colors">
+        <button type="button" className="relative inline-flex items-center justify-center min-h-11 min-w-11 text-on-surface-variant hover:text-on-surface transition-colors touch-manipulation rounded-sm">
           <Bell className="w-5 h-5" />
           <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full border border-surface-low"></span>
         </button>
 
-        <div className="flex items-center gap-4 pl-4 md:pl-6 border-l border-outline">
+        <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 md:pl-6 border-l border-outline min-w-0">
           {!user ? (
             <Link to="/login" className="flex items-center gap-3 group">
               <div className="text-right hidden sm:block">

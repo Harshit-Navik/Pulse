@@ -38,11 +38,11 @@ export default function Products() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background selection:bg-primary selection:text-on-primary flex flex-col">
+    <div className="min-h-screen bg-background selection:bg-primary selection:text-on-primary flex flex-col min-w-0 overflow-x-clip">
       <LandingNavbar />
       
-      <main className="flex-grow pt-32 md:pt-48 pb-32">
-        <div className="container mx-auto px-8 md:px-24">
+      <main className="flex-grow pt-28 sm:pt-32 md:pt-48 pb-20 sm:pb-32">
+        <div className="container mx-auto px-4 sm:px-8 md:px-24 max-w-full">
           <div className="text-center mb-24 relative z-10">
             <motion.span 
               initial={{ opacity: 0, y: 10 }}
@@ -56,7 +56,7 @@ export default function Products() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="font-headline text-5xl md:text-8xl font-extrabold tracking-tighter text-on-background leading-[0.9] mt-6 uppercase italic"
+              className="font-headline text-4xl sm:text-5xl md:text-8xl font-extrabold tracking-tighter text-on-background leading-[0.9] mt-6 uppercase italic px-1"
             >
               Upcoming<br/>Products.
             </motion.h1>
@@ -127,7 +127,7 @@ export default function Products() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="mt-32 p-12 text-center border border-outline bg-surface-container relative overflow-hidden"
+            className="mt-20 sm:mt-32 p-6 sm:p-12 text-center border border-outline bg-surface-container relative overflow-hidden"
           >
             <div className="absolute inset-0 kinetic-grid pointer-events-none opacity-20"></div>
             <div className="relative z-10">

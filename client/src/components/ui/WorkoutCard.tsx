@@ -21,7 +21,7 @@ export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, i
 
   return (
     <div className="group flex flex-col bg-surface-container border border-outline hover:border-primary/40 transition-all duration-500">
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative h-56 sm:h-72 overflow-hidden">
         <img 
           src={image} 
           alt={title} 
@@ -61,12 +61,12 @@ export function WorkoutCard({ id, tag, title, duration, difficulty, equipment, i
           </div>
         )}
       </div>
-      <div className="p-10 flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-8">
-          <h3 className="font-headline text-2xl font-black text-on-surface uppercase tracking-tight group-hover:text-primary transition-colors italic leading-none">{title}</h3>
-          <ArrowUpRight className="text-on-surface-variant group-hover:text-primary transition-colors w-5 h-5" />
+      <div className="p-6 sm:p-10 flex flex-col flex-grow min-w-0">
+        <div className="flex justify-between items-start gap-3 mb-8 min-w-0">
+          <h3 className="font-headline text-xl sm:text-2xl font-black text-on-surface uppercase tracking-tight group-hover:text-primary transition-colors italic leading-tight min-w-0 break-words">{title}</h3>
+          <ArrowUpRight className="text-on-surface-variant group-hover:text-primary transition-colors w-5 h-5 shrink-0" />
         </div>
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           <div className="flex flex-col">
             <span className="text-[9px] uppercase tracking-[0.2em] font-black text-on-surface-variant mb-2">Duration</span>
             <span className="text-xs font-bold text-on-surface uppercase">{duration}</span>

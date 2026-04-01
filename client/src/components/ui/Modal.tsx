@@ -47,21 +47,22 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="relative w-full max-w-lg mx-4 bg-surface-container border border-outline shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg max-h-[min(90dvh,48rem)] mx-3 sm:mx-4 bg-surface-container border border-outline shadow-2xl overflow-hidden flex flex-col min-h-0"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-8 border-b border-outline">
-              <h3 className="font-headline text-2xl font-black uppercase italic tracking-tight text-on-surface">{title}</h3>
+            <div className="flex items-center justify-between gap-4 p-5 sm:p-8 border-b border-outline shrink-0">
+              <h3 className="font-headline text-xl sm:text-2xl font-black uppercase italic tracking-tight text-on-surface min-w-0 pr-2 break-words">{title}</h3>
               <button
+                type="button"
                 onClick={onClose}
-                className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-highest transition-all rounded-sm"
+                className="inline-flex items-center justify-center min-h-10 min-w-10 shrink-0 p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-highest transition-all rounded-sm touch-manipulation"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Body */}
-            <div className="p-8">
+            <div className="p-5 sm:p-8 overflow-y-auto min-h-0 overscroll-contain">
               {children}
             </div>
           </motion.div>

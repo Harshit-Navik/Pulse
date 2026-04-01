@@ -34,7 +34,7 @@ export default function ExerciseLibrary() {
   }, [searchQuery, activeMuscle]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       
@@ -43,7 +43,7 @@ export default function ExerciseLibrary() {
           
           {/* Header Section */}
           <section className="relative">
-            <h1 className="font-headline text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-on-surface mb-6">
+            <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-on-surface mb-6 break-words">
               Exercise Vault
             </h1>
             <p className="text-on-surface-variant text-sm md:text-base font-light max-w-3xl leading-relaxed">

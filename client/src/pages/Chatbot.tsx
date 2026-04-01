@@ -277,7 +277,7 @@ export default function Chatbot() {
   const isDone = currentStep >= STEPS.length;
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden bg-background">
+    <div className="h-dvh flex flex-col overflow-hidden bg-background min-w-0">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -286,25 +286,26 @@ export default function Chatbot() {
           {/* Chat Container — column fills viewport below TopBar; only messages scroll */}
           <div className="bg-surface-container border border-outline flex flex-col flex-1 min-h-0 max-h-full overflow-hidden">
             {/* Chat Header */}
-            <div className="px-8 py-5 border-b border-outline flex items-center justify-between bg-surface-low/50 flex-shrink-0">
-              <div className="flex items-center gap-4">
+            <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-outline flex items-center justify-between gap-3 bg-surface-low/50 flex-shrink-0 min-w-0">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 <div className="w-10 h-10 bg-primary/10 flex items-center justify-center relative">
                   <Bot className="w-5 h-5 text-primary" />
                   <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface-low"></span>
                 </div>
-                <div>
-                  <h2 className="font-headline text-sm font-black uppercase tracking-[0.2em] text-on-surface">
+                <div className="min-w-0">
+                  <h2 className="font-headline text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-on-surface truncate">
                     Pulse AI Coach
                   </h2>
-                  <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest">
+                  <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest truncate">
                     Diet & Workout Generator
                   </p>
                 </div>
               </div>
               {isStarted && (
                 <button
+                  type="button"
                   onClick={handleReset}
-                  className="p-2.5 border border-outline text-on-surface-variant hover:text-on-surface hover:bg-surface-bright transition-all"
+                  className="inline-flex items-center justify-center min-h-10 min-w-10 p-2.5 border border-outline text-on-surface-variant hover:text-on-surface hover:bg-surface-bright transition-all touch-manipulation shrink-0"
                   title="Start Over"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -474,8 +475,8 @@ export default function Chatbot() {
 
             {/* Input Bar */}
             {isStarted && !isDone && (
-              <div className="px-6 py-4 border-t border-outline bg-surface-low/50 flex-shrink-0">
-                <div className="flex gap-3">
+              <div className="px-4 sm:px-6 py-4 border-t border-outline bg-surface-low/50 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row gap-3 min-w-0">
                   <input
                     ref={inputRef}
                     id="chatbot-input"
@@ -489,13 +490,14 @@ export default function Chatbot() {
                         : 'Type your answer...'
                     }
                     disabled={isTyping}
-                    className="flex-1 bg-surface-container border border-outline px-6 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/30 disabled:opacity-50"
+                    className="flex-1 min-w-0 bg-surface-container border border-outline px-4 sm:px-6 py-4 text-sm font-medium text-on-surface focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant/30 disabled:opacity-50"
                   />
                   <button
+                    type="button"
                     id="chatbot-send-btn"
                     onClick={handleSend}
                     disabled={!input.trim() || isTyping}
-                    className="px-6 py-4 bg-primary text-on-primary hover:brightness-110 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="w-full sm:w-auto px-6 py-4 bg-primary text-on-primary hover:brightness-110 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center touch-manipulation min-h-11"
                   >
                     <Send className="w-5 h-5" />
                   </button>
@@ -637,12 +639,12 @@ function PlanCard({ plan }: { plan: Plan }) {
         </div>
         <div className="space-y-3">
           {plan.diet.map((meal, i) => (
-            <div key={i} className="bg-surface-low p-4 border-l-2 border-primary/30">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-on-surface uppercase tracking-tight">
+            <div key={i} className="bg-surface-low p-4 border-l-2 border-primary/30 min-w-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-2">
+                <span className="text-xs font-bold text-on-surface uppercase tracking-tight break-words">
                   {meal.meal}
                 </span>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                   <span className="text-[9px] text-on-surface-variant font-medium flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {meal.time}
                   </span>
@@ -660,15 +662,16 @@ function PlanCard({ plan }: { plan: Plan }) {
             </div>
           ))}
         </div>
-        <div className="mt-5 pt-5 border-t border-outline flex items-center justify-between">
-          <div className="text-[10px] text-on-surface-variant max-w-[60%] leading-relaxed">
+        <div className="mt-5 pt-5 border-t border-outline flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-[10px] text-on-surface-variant max-w-full sm:max-w-[60%] leading-relaxed min-w-0">
             {dietError && <span className="text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {dietError}</span>}
             {dietSaved && <span className="text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Saved to My Diet Plans!</span>}
           </div>
           <button
+            type="button"
             onClick={handleSaveDiet}
             disabled={savingDiet || dietSaved}
-            className={`px-4 py-2 border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`w-full sm:w-auto justify-center px-4 py-2.5 min-h-10 border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all touch-manipulation ${
               dietSaved
                 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 opacity-100 cursor-not-allowed'
                 : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:scale-95 disabled:opacity-50'
@@ -690,11 +693,11 @@ function PlanCard({ plan }: { plan: Plan }) {
         </div>
         <div className="space-y-2">
           {plan.workout.map((ex, i) => (
-            <div key={i} className="flex items-center justify-between bg-surface-low p-3 gap-4">
-              <span className="text-xs font-bold text-on-surface uppercase tracking-tight flex-1 min-w-0 truncate">
+            <div key={i} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-surface-low p-3 min-w-0">
+              <span className="text-xs font-bold text-on-surface uppercase tracking-tight flex-1 min-w-0 break-words">
                 {ex.exercise}
               </span>
-              <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+              <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 self-start sm:self-auto">
                 <span className="text-[9px] text-on-surface-variant font-medium whitespace-nowrap">
                   {ex.sets} × {ex.reps}
                 </span>
@@ -705,15 +708,16 @@ function PlanCard({ plan }: { plan: Plan }) {
             </div>
           ))}
         </div>
-        <div className="mt-5 pt-5 border-t border-outline flex items-center justify-between">
-          <div className="text-[10px] text-on-surface-variant max-w-[60%] leading-relaxed">
+        <div className="mt-5 pt-5 border-t border-outline flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-[10px] text-on-surface-variant max-w-full sm:max-w-[60%] leading-relaxed min-w-0">
             {workoutError && <span className="text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> {workoutError}</span>}
             {workoutSaved && <span className="text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Saved to My Workout Plans!</span>}
           </div>
           <button
+            type="button"
             onClick={handleSaveWorkout}
             disabled={savingWorkout || workoutSaved}
-            className={`px-4 py-2 border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`w-full sm:w-auto justify-center px-4 py-2.5 min-h-10 border flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all touch-manipulation ${
               workoutSaved
                 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 opacity-100 cursor-not-allowed'
                 : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/40 active:scale-95 disabled:opacity-50'

@@ -499,7 +499,7 @@ export default function Nutrition() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
       
@@ -511,12 +511,12 @@ export default function Nutrition() {
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="col-span-12 lg:col-span-7 bg-surface-container p-10 border-l-4 border-primary relative overflow-hidden"
+              className="col-span-12 lg:col-span-7 bg-surface-container p-6 sm:p-10 border-l-4 border-primary relative overflow-hidden min-w-0"
             >
-              <div className="relative z-10">
+              <div className="relative z-10 min-w-0">
                 <span className="text-[10px] uppercase tracking-[0.4em] font-black text-primary mb-4 block">Remaining Balance</span>
-                <div className="flex items-baseline gap-4">
-                  <h2 className="font-headline text-5xl md:text-7xl font-black text-on-surface tracking-tighter italic">{remaining.toLocaleString()}</h2>
+                <div className="flex flex-wrap items-baseline gap-2 sm:gap-4">
+                  <h2 className="font-headline text-4xl sm:text-5xl md:text-7xl font-black text-on-surface tracking-tighter italic break-all sm:break-normal">{remaining.toLocaleString()}</h2>
                   <span className="text-xl font-headline font-bold text-on-surface-variant uppercase italic">kcal</span>
                 </div>
                 <div className="mt-10 flex flex-wrap gap-8 sm:gap-12">
@@ -537,7 +537,7 @@ export default function Nutrition() {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="col-span-12 lg:col-span-5 bg-surface-container p-10 flex flex-col justify-between"
+              className="col-span-12 lg:col-span-5 bg-surface-container p-6 sm:p-10 flex flex-col justify-between min-w-0"
             >
               <h4 className="font-headline text-xl font-black uppercase italic tracking-tight mb-8">Macro Distribution</h4>
               <div className="space-y-6">
@@ -550,11 +550,12 @@ export default function Nutrition() {
 
           {/* Diet Plans */}
           <section className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline text-3xl font-black uppercase italic tracking-tighter">Diet Plans</h3>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="font-headline text-2xl sm:text-3xl font-black uppercase italic tracking-tighter">Diet Plans</h3>
               <button
+                type="button"
                 onClick={() => { resetDietForm(); setDietModalOpen(true); }}
-                className="px-6 py-3 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all"
+                className="w-full sm:w-auto px-6 py-3 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all touch-manipulation min-h-11"
               >
                 Create Diet
               </button>
@@ -686,15 +687,16 @@ export default function Nutrition() {
 
           {/* Meal Log */}
           <section>
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="font-headline text-3xl font-black uppercase italic tracking-tighter">Meal Log</h3>
-              <div className="flex gap-4">
-                <button className="p-3 bg-surface-container border border-outline hover:bg-surface-bright transition-all">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+              <h3 className="font-headline text-2xl sm:text-3xl font-black uppercase italic tracking-tighter">Meal Log</h3>
+              <div className="flex gap-3 sm:gap-4 w-full sm:w-auto">
+                <button type="button" className="inline-flex items-center justify-center min-h-11 min-w-11 p-3 bg-surface-container border border-outline hover:bg-surface-bright transition-all touch-manipulation shrink-0">
                   <Search className="w-4 h-4" />
                 </button>
                 <button 
+                  type="button"
                   onClick={() => { resetForm(); setFabModalOpen(true); }}
-                  className="px-6 py-3 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all"
+                  className="flex-1 sm:flex-none px-6 py-3 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.3em] hover:brightness-110 transition-all touch-manipulation min-h-11"
                 >
                   Add Entry
                 </button>

@@ -303,7 +303,7 @@ export default function WorkoutDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -320,17 +320,17 @@ export default function WorkoutDetail() {
           </button>
 
           {/* Hero */}
-          <section className="relative h-80 md:h-96 overflow-hidden border border-outline">
+          <section className="relative min-h-[16rem] h-64 sm:h-80 md:h-96 overflow-hidden border border-outline">
             <img 
               src={workout.image} 
               alt={workout.title} 
-              className="w-full h-full object-cover grayscale brightness-40 contrast-125"
+              className="absolute inset-0 w-full h-full object-cover grayscale brightness-40 contrast-125"
               referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-8 md:p-12">
+            <div className="absolute bottom-0 left-0 p-5 sm:p-8 md:p-12 max-w-full z-10">
               <span className="bg-primary px-3 py-1 text-[9px] font-black tracking-[0.2em] uppercase text-on-primary mb-4 inline-block">{workout.tag}</span>
-              <h1 className="font-headline text-3xl md:text-5xl font-black text-on-surface uppercase italic tracking-tighter leading-none mb-4">{workout.title}</h1>
+              <h1 className="font-headline text-2xl sm:text-3xl md:text-5xl font-black text-on-surface uppercase italic tracking-tighter leading-none mb-4 break-words">{workout.title}</h1>
               <p className="text-on-surface-variant text-sm max-w-xl font-light leading-relaxed">{workout.description}</p>
             </div>
           </section>
@@ -339,15 +339,15 @@ export default function WorkoutDetail() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-surface-container p-6 border border-outline">
               <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.3em] mb-1">Duration</p>
-              <p className="text-2xl font-headline font-black text-on-surface italic">{workout.duration}</p>
+              <p className="text-lg sm:text-2xl font-headline font-black text-on-surface italic break-words">{workout.duration}</p>
             </div>
             <div className="bg-surface-container p-6 border border-outline">
               <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.3em] mb-1">Difficulty</p>
-              <p className="text-2xl font-headline font-black text-on-surface italic">{workout.difficulty}</p>
+              <p className="text-lg sm:text-2xl font-headline font-black text-on-surface italic break-words">{workout.difficulty}</p>
             </div>
-            <div className="bg-surface-container p-6 border border-outline">
+            <div className="bg-surface-container p-6 border border-outline min-w-0">
               <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.3em] mb-1">Equipment</p>
-              <p className="text-2xl font-headline font-black text-on-surface italic">{workout.equipment}</p>
+              <p className="text-lg sm:text-2xl font-headline font-black text-on-surface italic break-words">{workout.equipment}</p>
             </div>
             <div className="bg-surface-container p-6 border border-outline">
               <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.3em] mb-1">Exercises</p>
@@ -401,29 +401,31 @@ export default function WorkoutDetail() {
                   transition={{ delay: i * 0.05 }}
                   onClick={() => toggleExercise(i)}
                   className={cn(
-                    "bg-surface-container p-4 sm:p-6 border border-outline flex items-center gap-4 sm:gap-6 cursor-pointer transition-all duration-300 group",
+                    "bg-surface-container p-4 sm:p-6 border border-outline flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 cursor-pointer transition-all duration-300 group min-w-0",
                     exercise.completed ? "border-primary/30 opacity-60" : "hover:border-primary/20"
                   )}
                 >
-                  <div className="flex-shrink-0">
-                    {exercise.completed ? (
-                      <CheckCircle2 className="w-6 h-6 text-primary" />
-                    ) : (
-                      <Circle className="w-6 h-6 text-outline group-hover:text-primary/40 transition-colors" />
-                    )}
+                  <div className="flex items-start gap-4 min-w-0 flex-1 sm:flex-1">
+                    <div className="flex-shrink-0 pt-0.5">
+                      {exercise.completed ? (
+                        <CheckCircle2 className="w-6 h-6 text-primary" />
+                      ) : (
+                        <Circle className="w-6 h-6 text-outline group-hover:text-primary/40 transition-colors" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={cn(
+                        "font-headline text-base sm:text-lg font-black uppercase italic tracking-tight transition-colors break-words",
+                        exercise.completed ? "line-through text-on-surface-variant" : "text-on-surface group-hover:text-primary"
+                      )}>
+                        {exercise.name}
+                      </p>
+                      {exercise.notes && (
+                        <p className="text-xs text-on-surface-variant mt-1 italic">{exercise.notes}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className={cn(
-                      "font-headline text-lg font-black uppercase italic tracking-tight transition-colors",
-                      exercise.completed ? "line-through text-on-surface-variant" : "text-on-surface group-hover:text-primary"
-                    )}>
-                      {exercise.name}
-                    </p>
-                    {exercise.notes && (
-                      <p className="text-xs text-on-surface-variant mt-1 italic">{exercise.notes}</p>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-4 sm:gap-6 text-right flex-shrink-0 justify-end">
+                  <div className="flex flex-wrap gap-3 sm:gap-6 sm:text-right flex-shrink-0 justify-start sm:justify-end w-full sm:w-auto pl-10 sm:pl-0">
                     {exercise.sets > 0 && (
                       <div>
                         <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.2em]">Sets</p>
@@ -455,11 +457,11 @@ export default function WorkoutDetail() {
 
             {/* Timer Sidebar */}
             <div className="col-span-12 lg:col-span-4">
-              <div className="bg-surface-container p-8 border border-outline sticky top-28">
+              <div className="bg-surface-container p-5 sm:p-8 border border-outline lg:sticky lg:top-28">
                 <h4 className="font-headline text-xl font-black uppercase italic tracking-tight mb-8 text-center">Session Timer</h4>
                 
                 <div className="text-center mb-10">
-                  <p className="text-6xl font-headline font-black text-on-surface italic tracking-tighter">
+                  <p className="text-4xl sm:text-5xl md:text-6xl font-headline font-black text-on-surface italic tracking-tighter tabular-nums">
                     {formatTime(timerSeconds)}
                   </p>
                   <p className="text-[9px] text-on-surface-variant font-black uppercase tracking-[0.4em] mt-2">Elapsed Time</p>

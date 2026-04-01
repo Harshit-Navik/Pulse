@@ -179,7 +179,7 @@ export default function BMICalculator() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <TopBar onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -221,7 +221,7 @@ export default function BMICalculator() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="col-span-12 lg:col-span-5 bg-surface-container p-10"
+              className="col-span-12 lg:col-span-5 bg-surface-container p-6 sm:p-10 min-w-0"
             >
               <h3 className="font-headline text-xl font-black uppercase italic tracking-tight mb-8">
                 Enter Your Data
@@ -364,7 +364,7 @@ export default function BMICalculator() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-surface-container p-10 relative overflow-hidden"
+                    className="bg-surface-container p-6 sm:p-10 relative overflow-hidden min-w-0"
                   >
                     {/* BMI Value Display */}
                     <div className="text-center mb-10">
@@ -375,7 +375,7 @@ export default function BMICalculator() {
                         <motion.span
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`font-headline text-7xl md:text-8xl font-black italic tracking-tighter ${result.color}`}
+                          className={`font-headline text-5xl sm:text-6xl md:text-8xl font-black italic tracking-tighter ${result.color}`}
                         >
                           {result.value.toFixed(1)}
                         </motion.span>

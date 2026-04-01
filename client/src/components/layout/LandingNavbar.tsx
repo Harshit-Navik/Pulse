@@ -206,10 +206,10 @@ export function LandingNavbar() {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline/30">
-      <div className="max-w-7xl mx-auto flex justify-between items-center py-6 px-8 md:px-12">
-        <Link to="/" className="flex items-center">
-          <img src="/images/logo.svg" alt="App Logo" className="h-8 md:h-10 w-auto object-contain" />
+    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline/30 min-w-0">
+      <div className="max-w-7xl mx-auto flex justify-between items-center py-6 px-4 sm:px-8 md:px-12 gap-3 min-w-0">
+        <Link to="/" className="flex items-center min-w-0 shrink-0">
+          <img src="/images/logo.svg" alt="App Logo" className="h-8 md:h-10 w-auto max-h-10 object-contain" />
         </Link>
 
         <div className="hidden md:flex items-center gap-x-10">
@@ -229,8 +229,9 @@ export function LandingNavbar() {
         </div>
 
         <button
+          type="button"
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden p-2 text-on-surface-variant hover:text-on-surface transition-colors"
+          className="md:hidden inline-flex items-center justify-center min-h-11 min-w-11 p-2 text-on-surface-variant hover:text-on-surface transition-colors touch-manipulation rounded-sm shrink-0"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -240,8 +241,8 @@ export function LandingNavbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden border-t border-outline/30 bg-background/95 backdrop-blur-md">
-          <div className="px-8 py-6 space-y-4">
+        <div className="md:hidden border-t border-outline/30 bg-background/95 backdrop-blur-md max-h-[min(70dvh,calc(100dvh-5rem))] overflow-y-auto overscroll-contain">
+          <div className="px-4 sm:px-8 py-6 space-y-4">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
