@@ -7,6 +7,10 @@ A fitness and wellness platform that helps users track workouts, monitor progres
 Pulse is a full-stack web application focused on practical fitness tracking and wellness workflows.  
 It combines workout management, nutrition logging, progress monitoring, and user profile insights in one platform, with AI-assisted coaching support.
 
+## Live link 
+
+checkout the live version of project here: https://pulse-oxys.onrender.com
+
 ## Project Structure
 
 ```text
@@ -158,5 +162,5 @@ Contributions are welcome.
 ## License
 
 This project is currently not licensed.  
-If you plan to open-source it publicly, consider adding an MIT License file.
+
 
