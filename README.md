@@ -11,6 +11,8 @@ It combines workout management, nutrition logging, progress monitoring, and user
 
 checkout the live version of project here: https://pulse-oxys.onrender.com
 
+---
+
 ## Project Structure
 
 ```text
